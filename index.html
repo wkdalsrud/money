@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>2026 Money - 귀여운 파스텔 연간 예산 기록</title>
+    
+    <!-- Google Fonts: Jua (귀여운 포인트 타이틀) & Noto Sans KR (깔끔한 본문/숫자) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        cute: ['"Jua"', 'sans-serif'],
+                        sans: ['"Noto Sans KR"', 'sans-serif'],
+                    },
+                    colors: {
+                        pastel: {
+                            bg: '#FFF9FB',
+                            card: '#FFFFFF',
+                            pink: '#FFD6E0',
+                            pinkDark: '#FF8FA3',
+                            mint: '#C7F9CC',
+                            mintDark: '#57CC99',
+                            blue: '#BDE0FE',
+                            blueDark: '#64A6BD',
+                            purple: '#E2C2FF',
+                            purpleDark: '#A663CC',
+                            yellow: '#FFF3B0',
+                            yellowDark: '#E09F3E',
+                            peach: '#FFDAC1',
+                            peachDark: '#F28482',
+                            text: '#4A4453',
+                            subtext: '#8B8296'
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 25px -5px rgba(255, 143, 163, 0.15), 0 8px 10px -6px rgba(166, 99, 204, 0.1)',
+                        'card': '0 4px 16px rgba(74, 68, 83, 0.06)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 가로 스크롤바 숨김 처리 (월별 슬라이더용) */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* 배경 도트 패턴 */
+        body {
+            background-color: #FFF9FB;
+            background-image: radial-gradient(#FFD6E0 1.2px, transparent 1.2px), radial-gradient(#E2C2FF 1.2px, #FFF9FB 1.2px);
+            background-size: 32px 32px;
+            background-position: 0 0, 16px 16px;
+        }
+
+        /* 부드러운 바운스 호버 효과 */
+        .transition-bounce {
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, background-color 0.2s ease;
+        }
+        .transition-bounce:active {
+            transform: scale(0.96);
+        }
+
+        /* 키보드 포커스 표시 */
+        button:focus-visible, li[role="button"]:focus-visible, select:focus-visible {
+            outline: 2px solid #7E22CE; outline-offset: 2px;
+        }
+    </style>
+</head>
+<body class="text-pastel-text font-sans min-h-screen pb-16 selection:bg-pastel-pink selection:text-pastel-text overflow-x-hidden">
+
+    <!-- 메인 컨테이너 -->
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 pt-6 sm:pt-10">
+        
+        <!-- 1. 상단 헤더 영역 -->
+        <header class="text-center mb-6 sm:mb-8 relative">
+            <div class="inline-flex items-center gap-2 bg-white/90 backdrop-blur-sm px-6 py-2.5 rounded-full shadow-soft border-2 border-pastel-pink">
+                <i data-ic="piggy" class="text-3xl sm:text-4xl text-pastel-pinkDark"></i>
+                <h1 class="font-cute text-3xl sm:text-4xl tracking-wide bg-gradient-to-r from-pastel-pinkDark via-pastel-purpleDark to-pastel-blueDark bg-clip-text text-transparent">
+                    2026 Money
+                </h1>
+                <i data-ic="sparkle" class="text-2xl text-pastel-yellowDark"></i>
+            </div>
+            <p class="text-[13px] sm:text-sm text-pastel-subtext mt-2.5 font-medium">
+                차곡차곡 모으는 나만의 2026년 파스텔 가계부
+            </p>
+            <!-- 우측 상단 보조 버튼: 내 통장 관리 & 초기화 -->
+            <div class="mt-3 sm:mt-0 sm:absolute sm:right-0 sm:top-1/2 sm:-translate-y-1/2 flex justify-center items-center gap-2">
+                <button id="open-account-manager-btn" type="button" class="text-[13px] bg-white/90 hover:bg-pastel-purple/30 text-pastel-text font-medium px-3 py-1.5 rounded-full border border-pastel-purple shadow-sm transition-bounce inline-flex items-center gap-1">
+                    <i data-ic="bank" class="text-pastel-purpleDark"></i> 내 통장 관리
+                </button>
+            </div>
+        </header>
+
+        <!-- 2. 중간 요약 대시보드 (연간 수입 / 연간 저축 2분할) -->
+        <section aria-label="연간 예산 요약" class="bg-white/90 backdrop-blur-md rounded-3xl p-4 sm:p-6 shadow-soft border-2 border-white mb-7">
+            <div class="flex items-center justify-between mb-3 px-1">
+                <span class="text-[13px] sm:text-sm font-bold text-pastel-subtext flex items-center gap-1.5">
+                    <i data-ic="sparkle" class="text-pastel-yellowDark"></i> 2026 연간 요약 보드
+                </span>
+                <span class="text-[13px] text-pastel-subtext bg-pastel-bg px-2.5 py-0.5 rounded-full border border-pastel-pink/40">
+                    1월 ~ 12월 합계
+                </span>
+            </div>
+
+            <!-- 2분할 박스 그리드 -->
+            <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                <!-- 박스 1: 연간 수입 -->
+                <div class="bg-gradient-to-br from-pastel-blue/40 to-pastel-blue/15 rounded-2xl p-4 sm:p-5 border border-pastel-blue/60 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[13px] sm:text-sm font-bold text-blue-800/80">연간 수입</span>
+                        <span class="w-8 h-8 rounded-full bg-white/80 flex items-center justify-center text-blue-500 shadow-sm">
+                            <i data-ic="dollar" class="text-lg"></i>
+                        </span>
+                    </div>
+                    <p id="annual-income-total" class="text-[clamp(1.05rem,5.2vw,1.6rem)] leading-tight font-black text-blue-900 tracking-tight tabular-nums break-words">0원</p>
+                </div>
+
+                <!-- 박스 2: 연간 저축 -->
+                <div class="bg-gradient-to-br from-pastel-mint/50 to-pastel-mint/20 rounded-2xl p-4 sm:p-5 border border-pastel-mintDark/30 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[13px] sm:text-sm font-bold text-emerald-800/80">연간 저축</span>
+                        <span class="w-8 h-8 rounded-full bg-white/80 flex items-center justify-center text-emerald-500 shadow-sm">
+                            <i data-ic="piggy" class="text-lg"></i>
+                        </span>
+                    </div>
+                    <p id="annual-saving-total" class="text-[clamp(1.05rem,5.2vw,1.6rem)] leading-tight font-black text-emerald-900 tracking-tight tabular-nums break-words">0원</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 월별 선택 버튼 (좌우 슬라이드 & 화살표 네비게이션) -->
+        <section aria-label="월 선택 슬라이더" class="mb-6">
+            <div class="flex items-center gap-2">
+                <!-- 좌측 이동 버튼 -->
+                <button id="prev-month-btn" type="button" aria-label="이전 달" class="shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border-2 border-pastel-pink/70 text-pastel-pinkDark hover:bg-pastel-pink hover:text-rose-800 flex items-center justify-center shadow-card transition-bounce">
+                    <i data-ic="chevron-left" class="text-lg"></i>
+                </button>
+
+                <!-- 가로 스크롤 월 버튼 컨테이너 -->
+                <div id="month-slider" class="flex items-center gap-2 sm:gap-2.5 overflow-x-auto no-scrollbar py-3 px-2 scroll-smooth flex-1">
+                    <!-- JS로 1월 ~ 12월 버튼 렌더링 -->
+                </div>
+
+                <!-- 우측 이동 버튼 -->
+                <button id="next-month-btn" type="button" aria-label="다음 달" class="shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border-2 border-pastel-pink/70 text-pastel-pinkDark hover:bg-pastel-pink hover:text-rose-800 flex items-center justify-center shadow-card transition-bounce">
+                    <i data-ic="chevron-right" class="text-lg"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- 4. 선택된 월의 요약 배너 & 6개 카테고리 카드 영역 -->
+        <main id="month-content-area" class="touch-pan-y">
+            <!-- 현재 선택된 월 타이틀 & 월별 미니 요약 -->
+            <div class="bg-white/80 backdrop-blur-sm rounded-2xl px-3.5 sm:px-5 py-3 mb-5 border border-pastel-pink/40 shadow-sm">
+                <div class="flex items-center gap-1 mb-2.5">
+                    <span id="current-month-badge" class="font-cute text-lg sm:text-2xl text-rose-600">1월</span>
+                    <span class="font-cute text-base sm:text-xl text-pastel-text">예산 내역</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-[13px] sm:text-sm font-medium">
+                    <div class="text-blue-800 bg-pastel-blue/40 px-3 py-1.5 rounded-xl flex items-center justify-between gap-2"><span>수입</span><strong id="month-total-income" class="tabular-nums">0원</strong></div>
+                    <div class="text-emerald-800 bg-pastel-mint/50 px-3 py-1.5 rounded-xl flex items-center justify-between gap-2"><span>저축</span><strong id="month-total-saving" class="tabular-nums">0원</strong></div>
+                </div>
+            </div>
+
+            <!-- 🏦 통장별 입출금 요약 박스 -->
+            <div class="bg-white/85 backdrop-blur-sm rounded-2xl p-4 sm:p-5 mb-5 border border-pastel-purple/50 shadow-card">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="font-cute text-base sm:text-lg text-pastel-text flex items-center gap-1.5">
+                        <i data-ic="wallet" class="text-pastel-purpleDark text-xl"></i>
+                        <span id="account-summary-month">1월</span> 통장별 현황
+                    </span>
+                    <button type="button" id="quick-manage-account-btn" class="text-[13px] sm:text-sm text-pastel-purpleDark hover:underline font-semibold">
+                        + 통장 편집
+                    </button>
+                </div>
+                <div id="account-summary-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                    <!-- JS로 통장별 합계 카드 렌더링 -->
+                </div>
+            </div>
+
+            <!-- 6가지 카테고리 카드 그리드 (수입 / 고정지출 / 카드대금 / 변동지출 / 비상금 / 저축) -->
+            <div id="categories-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+                <!-- JS로 6개 카테고리 카드 렌더링 -->
+            </div>
+        </main>
+    </div>
+
+    <!-- 소분류 항목 추가/수정 모달 -->
+    <div id="add-item-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/35 backdrop-blur-sm overflow-y-auto p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        <div role="dialog" aria-modal="true" aria-labelledby="modal-title" class="bg-white rounded-3xl w-full max-w-[340px] sm:max-w-md p-5 sm:p-6 shadow-2xl border-2 border-pastel-pink my-auto max-h-[calc(100dvh-2.5rem)] overflow-y-auto">
+            <div class="flex items-center justify-between mb-3.5">
+                <div class="flex items-center gap-2">
+                    <span id="modal-category-icon" class="w-8 h-8 rounded-full flex items-center justify-center text-lg bg-pastel-pink/40 text-pastel-pinkDark"></span>
+                    <h3 id="modal-title" class="font-cute text-lg sm:text-xl text-pastel-text">소분류 추가</h3>
+                </div>
+                <div class="flex items-center gap-1.5"><button type="button" id="modal-delete-btn" class="hidden inline-flex items-center gap-1 px-3 h-8 rounded-full bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold text-[13px] transition-bounce"><i data-ic="trash"></i> 삭제</button><button id="close-modal-btn" type="button" class="w-8 h-8 rounded-full bg-pastel-bg hover:bg-pastel-pink/50 text-pastel-subtext flex items-center justify-center transition-colors">
+                    <i data-ic="x" class=""></i>
+                </button></div>
+            </div>
+
+            <form id="add-item-form" class="space-y-3.5">
+                <div>
+                    <label for="item-name" class="block text-[13px] font-bold text-pastel-subtext mb-1">항목 이름</label>
+                    <input type="text" id="item-name" data-autofocus required maxlength="20" placeholder="예: 월급, 통신비, 청년적금"
+                        class="w-full px-3.5 py-2.5 rounded-2xl bg-pastel-bg border border-pastel-pink/60 focus:outline-none focus:border-pastel-pinkDark focus:ring-2 focus:ring-pastel-pink/40 text-base">
+                </div>
+
+                <div>
+                    <label for="item-account" class="block text-[13px] font-bold text-pastel-subtext mb-1"><span id="item-account-label">연결 통장</span></label>
+                    <select id="item-account"
+                        class="w-full px-3.5 py-2.5 rounded-2xl bg-pastel-bg border border-pastel-pink/60 focus:outline-none focus:border-pastel-pinkDark focus:ring-2 focus:ring-pastel-pink/40 text-base text-pastel-text">
+                        <!-- JS로 통장 목록 렌더링 -->
+                    </select>
+                </div>
+
+                <div>
+                    <label for="item-amount" class="block text-[13px] font-bold text-pastel-subtext mb-1">금액 (원)</label>
+                    <div class="relative">
+                        <input type="text" id="item-amount" inputmode="numeric" maxlength="15" required placeholder="0"
+                            class="w-full px-3.5 py-2.5 pr-9 rounded-2xl bg-pastel-bg border border-pastel-pink/60 focus:outline-none focus:border-pastel-pinkDark focus:ring-2 focus:ring-pastel-pink/40 text-base font-bold text-right">
+                        <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-[13px] font-bold text-pastel-subtext">원</span>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 pt-1.5">
+                    <button type="button" id="cancel-modal-btn" class="flex-1 py-2.5 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-sm transition-bounce">
+                        취소
+                    </button>
+                    <button type="submit" id="submit-modal-btn" class="flex-1 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-md transition-bounce">
+                        추가하기
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 내 통장 관리 모달 -->
+    <div id="account-manager-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/35 backdrop-blur-sm overflow-y-auto p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        <div role="dialog" aria-modal="true" aria-labelledby="account-modal-title" class="bg-white rounded-3xl w-full max-w-[350px] sm:max-w-md p-5 sm:p-6 shadow-2xl border-2 border-pastel-purple my-auto max-h-[calc(100dvh-2.5rem)] overflow-y-auto">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                    <i data-ic="bank" class="text-xl text-pastel-purpleDark"></i>
+                    <h3 id="account-modal-title" class="font-cute text-lg sm:text-xl text-pastel-text">내 통장 관리</h3>
+                </div>
+                <button id="close-account-modal-btn" type="button" class="w-8 h-8 rounded-full bg-pastel-bg hover:bg-pastel-purple/40 text-pastel-subtext flex items-center justify-center transition-colors">
+                    <i data-ic="x" class=""></i>
+                </button>
+            </div>
+            <p class="text-[13px] text-pastel-subtext mb-3">통장을 등록하고 이름·순서를 바꿀 수 있어요. (저장을 눌러야 전체 월에 반영)</p>
+
+            <form id="add-account-form" class="flex items-center gap-1.5 mb-3.5">
+                <input type="text" id="new-account-name" maxlength="16" placeholder="예: 생활비 통장" required
+                    class="flex-1 min-w-0 px-3 py-2 rounded-2xl bg-pastel-bg border border-pastel-purple focus:outline-none focus:border-pastel-purpleDark text-base">
+                <button type="submit" class="shrink-0 px-3.5 py-2 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-[13px] sm:text-sm transition-bounce whitespace-nowrap">
+                    등록
+                </button>
+            </form>
+
+            <div class="max-h-56 overflow-y-auto space-y-2 pr-0.5" id="managed-accounts-list">
+                <!-- JS로 등록된 통장 목록 렌더링 -->
+            </div>
+            <div class="mt-4 pt-3 border-t border-pastel-purple/30">
+                <p class="text-[13px] font-bold text-pastel-subtext mb-2">데이터 관리 (바로 적용돼요)</p>
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" id="export-data-btn" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-pastel-bg border border-pastel-purple text-[13px] font-semibold text-pastel-text hover:bg-pastel-purple/30 transition-bounce"><i data-ic="download" class=""></i> 백업 내보내기</button>
+                    <button type="button" id="import-data-btn" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-pastel-bg border border-pastel-purple text-[13px] font-semibold text-pastel-text hover:bg-pastel-purple/30 transition-bounce"><i data-ic="upload" class=""></i> 백업 불러오기</button>
+                    <button type="button" id="reset-demo-btn" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-white border border-rose-300 text-[13px] font-semibold text-rose-700 hover:bg-rose-50 transition-bounce"><i data-ic="rotate" class=""></i> 전체 초기화</button>
+                </div>
+                <input type="file" id="import-file-input" accept="application/json,.json" class="hidden">
+            </div>
+
+            <div class="flex gap-2 mt-4">
+                <button type="button" id="cancel-account-modal-btn" class="flex-1 py-2.5 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-sm transition-bounce">
+                    취소
+                </button>
+                <button type="button" id="save-account-modal-btn" class="flex-1 py-2.5 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-sm shadow-md transition-bounce">
+                    저장
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 삭제 확인 모달 -->
+    <div id="delete-confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/35 backdrop-blur-sm overflow-y-auto p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        <div role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" class="bg-white rounded-3xl w-full max-w-[330px] p-5 sm:p-6 shadow-2xl border-2 border-pastel-pink text-center my-auto max-h-[calc(100dvh-2.5rem)] overflow-y-auto">
+            <div class="w-12 h-12 rounded-full bg-pastel-pink/40 text-pastel-pinkDark flex items-center justify-center mx-auto mb-3 text-2xl">
+                <i data-ic="alert" class=""></i>
+            </div>
+            <h3 id="confirm-title" class="font-cute text-xl text-pastel-text mb-1.5">정말 삭제할까요?</h3>
+            <p id="delete-modal-desc" class="text-[13px] sm:text-sm text-pastel-subtext mb-5 leading-relaxed">
+                선택한 항목이 삭제됩니다.
+            </p>
+            <div class="flex gap-2.5">
+                <button type="button" id="cancel-delete-btn" class="flex-1 py-2.5 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-sm transition-bounce">
+                    취소
+                </button>
+                <button type="button" id="confirm-delete-btn" class="flex-1 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-md transition-bounce">
+                    삭제하기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 토스트 알림 메시지 -->
+    <div id="toast-msg" role="status" aria-live="polite" class="fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-50 bg-pastel-text text-white text-[13px] sm:text-sm font-medium px-5 py-3 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-300 flex items-center gap-1.5 whitespace-nowrap max-w-[92vw]">
+        <i data-ic="check" class="shrink-0"></i>
+        <span id="toast-text" class="truncate">저장되었습니다!</span>
+    </div>
+
+    <script>
+        const $ = id => document.getElementById(id);
+
+        // ---------- 아이콘 (인라인 SVG: 외부 아이콘 라이브러리가 필요 없어요) ----------
+        const ICONS = {
+            'chevron-left': '<path d="M15 18l-6-6 6-6"/>',
+            'chevron-right': '<path d="M9 18l6-6-6-6"/>',
+            'x': '<path d="M18 6L6 18M6 6l12 12"/>',
+            'plus': '<path d="M12 5v14M5 12h14"/>',
+            'arrow-up': '<path d="M12 19V5M5 12l7-7 7 7"/>',
+            'arrow-down': '<path d="M12 5v14M19 12l-7 7-7-7"/>',
+            'trash': '<path d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>',
+            'download': '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>',
+            'upload': '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>',
+            'rotate': '<path d="M1 4v6h6M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>',
+            'check': '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14M22 4L12 14.01l-3-3"/>',
+            'alert': '<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>',
+            'sparkle': '<path d="M12 3l2.6 6.4L21 12l-6.4 2.6L12 21l-2.6-6.4L3 12l6.4-2.6z"/>',
+            'bank': '<path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/>',
+            'wallet': '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+            'dollar': '<path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+            'piggy': '<path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2V5z"/><path d="M2 9v1c0 1.1.9 2 2 2h1M16 11h.01"/>',
+            'home': '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 22V12h6v10"/>',
+            'card': '<rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/>',
+            'bag': '<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/>',
+            'lifebuoy': '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24M14.83 9.17l4.24-4.24M4.93 19.07l4.24-4.24"/>'
+        };
+        function ic(name, cls = '') {
+            return `<svg class="${cls}" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:inline-block;vertical-align:-0.125em;flex-shrink:0">${ICONS[name] || ''}</svg>`;
+        }
+        // HTML에 적힌 <i data-ic="이름"> 자리표시를 SVG로 교체
+        function hydrateIcons() {
+            document.querySelectorAll('i[data-ic]').forEach(el => { el.outerHTML = ic(el.dataset.ic, el.className); });
+        }
+
+        // 카테고리 메타데이터 (수입 - 고정지출 - 카드대금 - 변동지출 - 비상금 - 저축)
+        // 버튼 색은 흰 글씨 대비 4.5:1 이상이 되도록 진한 색 사용
+        const CATEGORIES = [
+            { id: 'income', name: '수입', icon: 'dollar', type: 'income', accountLabel: '입금 통장',
+              iconClass: 'bg-blue-100 text-blue-700',
+              bgClass: 'bg-gradient-to-br from-pastel-blue/35 to-white', borderClass: 'border-pastel-blue',
+              badgeClass: 'bg-pastel-blue/60 text-blue-900', btnClass: 'bg-blue-700 hover:bg-blue-800 text-white' },
+            { id: 'fixed', name: '고정지출', icon: 'home', type: 'expense', accountLabel: '출금 통장',
+              iconClass: 'bg-rose-100 text-rose-700',
+              bgClass: 'bg-gradient-to-br from-pastel-pink/35 to-white', borderClass: 'border-pastel-pink',
+              badgeClass: 'bg-pastel-pink/60 text-rose-900', btnClass: 'bg-rose-600 hover:bg-rose-700 text-white' },
+            { id: 'card', name: '카드대금', icon: 'card', type: 'expense', accountLabel: '출금 통장',
+              iconClass: 'bg-purple-100 text-purple-700',
+              bgClass: 'bg-gradient-to-br from-pastel-purple/35 to-white', borderClass: 'border-pastel-purple',
+              badgeClass: 'bg-pastel-purple/60 text-purple-900', btnClass: 'bg-purple-700 hover:bg-purple-800 text-white' },
+            { id: 'variable', name: '변동지출', icon: 'bag', type: 'expense', accountLabel: '출금 통장',
+              iconClass: 'bg-orange-100 text-orange-700',
+              bgClass: 'bg-gradient-to-br from-pastel-peach/45 to-white', borderClass: 'border-pastel-peach',
+              badgeClass: 'bg-pastel-peach/70 text-orange-900', btnClass: 'bg-orange-700 hover:bg-orange-800 text-white' },
+            { id: 'emergency', name: '비상금', icon: 'lifebuoy', type: 'saving', accountLabel: '입금 통장',
+              iconClass: 'bg-amber-100 text-amber-700',
+              bgClass: 'bg-gradient-to-br from-pastel-yellow/55 to-white', borderClass: 'border-pastel-yellowDark/40',
+              badgeClass: 'bg-pastel-yellow text-amber-900', btnClass: 'bg-amber-700 hover:bg-amber-800 text-white' },
+            { id: 'saving', name: '저축', icon: 'piggy', type: 'saving', accountLabel: '입금 통장',
+              iconClass: 'bg-emerald-100 text-emerald-700',
+              bgClass: 'bg-gradient-to-br from-pastel-mint/45 to-white', borderClass: 'border-pastel-mintDark/40',
+              badgeClass: 'bg-pastel-mint text-emerald-900', btnClass: 'bg-emerald-700 hover:bg-emerald-800 text-white' }
+        ];
+
+        const STORAGE_KEY = '2026_money_budget_data_v3';
+        const ACCOUNTS_STORAGE_KEY = '2026_money_accounts_v3';
+        const OLD_STORAGE_KEY = '2026_money_budget_data_v2';       // 예전 버전 (자동 이전용)
+        const OLD_ACCOUNTS_KEY = '2026_money_accounts_v2';
+        const MAX_AMOUNT = 9999999999;                              // 99억 9,999만원대 상한
+
+        const DEFAULT_ACCOUNT_NAMES = ['주거래 통장', '생활비 통장', '저축/청약 통장', '비상금 통장'];
+        const DEFAULT_MONTHLY_ITEMS = {
+            income: ['급여', '성과', '상여', '기타'],
+            fixed: ['통신비', '교통비', '생필품', '보험료', '모임통장', '구독료'],
+            card: ['신한카드', '현대카드', '국민카드'],
+            variable: ['용돈', '숙소&KTX', '생일'],
+            emergency: [],
+            saving: ['청년주택청약', '청년적금', 'MMF', '결혼자금']
+        };
+
+        // ---------- 유틸 ----------
+        const uid = p => `${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+        const safeId = (v, p) => (typeof v === 'string' && /^[\w-]{1,60}$/.test(v)) ? v : uid(p);
+        const clampAmount = n => Math.min(MAX_AMOUNT, Math.max(0, Math.floor(Number(n) || 0)));
+        const formatCurrency = n => (Number(n) || 0).toLocaleString('ko-KR') + '원';
+        const formatSigned = n => (n < 0 ? '-' : '+') + Math.abs(n).toLocaleString('ko-KR') + '원';
+        const sumItems = items => (items || []).reduce((a, c) => a + (Number(c.amount) || 0), 0);
+        function parseAmountValue(raw) {
+            const d = String(raw || '').replace(/[^\d]/g, '').slice(0, 12);
+            return d ? clampAmount(parseInt(d, 10)) : 0;
+        }
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+        function readJSON(key) {
+            try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : null; }
+            catch (e) { console.warn('로드 실패:', key, e); return null; }
+        }
+        function safeSet(key, val) {
+            try { localStorage.setItem(key, JSON.stringify(val)); return true; }
+            catch (e) { console.warn('저장 실패:', key, e); return false; }
+        }
+
+        // ---------- 데이터 구조 (통장은 이름이 아닌 id로 연결) ----------
+        function defaultAccounts() {
+            return DEFAULT_ACCOUNT_NAMES.map((name, i) => ({ id: `acc-default-${i}`, name }));
+        }
+        function normalizeAccounts(raw) {
+            if (!Array.isArray(raw)) return null;
+            const seen = new Set(), out = [];
+            raw.forEach(a => {
+                const obj = typeof a === 'string' ? { name: a } : a;
+                if (!obj || typeof obj.name !== 'string') return;
+                const name = obj.name.trim().slice(0, 16);
+                if (!name) return;
+                let id = safeId(obj.id, 'acc');
+                if (seen.has(id)) id = uid('acc');
+                seen.add(id);
+                out.push({ id, name });
+            });
+            return out;
+        }
+        function emptyData() {
+            const data = {};
+            for (let m = 1; m <= 12; m++) {
+                data[m] = {};
+                CATEGORIES.forEach(cat => {
+                    data[m][cat.id] = (DEFAULT_MONTHLY_ITEMS[cat.id] || []).map((name, idx) => (
+                        { id: `preset-${m}-${cat.id}-${idx}`, name, amount: 0, accountId: '' }
+                    ));
+                });
+            }
+            return data;
+        }
+        // 저장 데이터가 일부 깨져 있어도 빈 구조로 보정 + 예전 형식(통장 이름 연결) 이전
+        function normalizeData(raw, accounts) {
+            const base = emptyData();
+            if (!raw || typeof raw !== 'object') return base;
+            const byName = {};
+            accounts.forEach(a => { byName[a.name] = a.id; });
+            for (let m = 1; m <= 12; m++) {
+                CATEGORIES.forEach(cat => {
+                    const src = raw[m] && raw[m][cat.id];
+                    if (!Array.isArray(src)) return;
+                    base[m][cat.id] = src.filter(it => it && typeof it === 'object').map(it => {
+                        let accountId = typeof it.accountId === 'string' ? it.accountId : '';
+                        if (!accountId && typeof it.account === 'string' && byName[it.account]) accountId = byName[it.account];
+                        if (accountId && !accounts.some(a => a.id === accountId)) accountId = '';
+                        return {
+                            id: safeId(it.id, 'item'),
+                            name: String(it.name == null ? '' : it.name).slice(0, 20),
+                            amount: clampAmount(it.amount),
+                            accountId
+                        };
+                    });
+                });
+            }
+            return base;
+        }
+        function loadState() {
+            let accounts = normalizeAccounts(readJSON(ACCOUNTS_STORAGE_KEY));
+            let rawData = readJSON(STORAGE_KEY);
+            if (!accounts && !rawData) {   // v3가 없으면 v2 데이터를 이어받기
+                accounts = normalizeAccounts(readJSON(OLD_ACCOUNTS_KEY));
+                rawData = readJSON(OLD_STORAGE_KEY);
+            }
+            if (!accounts) accounts = defaultAccounts();
+            return { accounts, data: normalizeData(rawData, accounts) };
+        }
+
+        // ---------- 상태 ----------
+        const now = new Date();
+        let currentMonth = now.getFullYear() === 2026 ? now.getMonth() + 1 : 1;   // 오늘이 속한 달로 시작
+        let activeModalCategoryId = null;
+        let editingItemId = null;
+        let confirmAction = null;
+        let tempAccountsList = [];
+        const initial = loadState();
+        let accountsList = initial.accounts;
+        let budgetData = initial.data;
+
+        function persistAll() {
+            const a = safeSet(ACCOUNTS_STORAGE_KEY, accountsList);
+            const d = safeSet(STORAGE_KEY, budgetData);
+            return a && d;
+        }
+        const saveData = () => safeSet(STORAGE_KEY, budgetData);
+        const accountName = id => (accountsList.find(a => a.id === id) || {}).name || '';
+        const findItem = (m, catId, itemId) => ((budgetData[m] || {})[catId] || []).find(i => i.id === itemId);
+
+        // 저장 → 화면 갱신 → 결과 토스트 (저장 실패 시 실패를 알림)
+        function commit(successMsg) {
+            const ok = saveData();
+            updateAnnualDashboard();
+            renderMonthCategories();
+            if (ok) showToast(successMsg);
+            else showToast('저장에 실패했어요. 백업 내보내기로 데이터를 보관해 주세요', true);
+        }
+
+        // ---------- 합계 ----------
+        function monthTotals(m) {
+            const d = budgetData[m] || {};
+            let income = 0, expense = 0, saving = 0;
+            CATEGORIES.forEach(cat => {
+                const s = sumItems(d[cat.id]);
+                if (cat.type === 'income') income += s;
+                else if (cat.type === 'expense') expense += s;
+                else saving += s;
+            });
+            return { income, expense, saving, remain: income - expense - saving };
+        }
+        function updateAnnualDashboard() {
+            let income = 0, saving = 0;
+            for (let m = 1; m <= 12; m++) {
+                const t = monthTotals(m);
+                income += t.income; saving += t.saving;
+            }
+            $('annual-income-total').textContent = formatCurrency(income);
+            $('annual-saving-total').textContent = formatCurrency(saving);
+        }
+
+        // ---------- 월 슬라이더 ----------
+        function renderMonthSlider() {
+            const slider = $('month-slider');
+            slider.innerHTML = '';
+            for (let m = 1; m <= 12; m++) {
+                const sel = m === currentMonth;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.dataset.month = m;
+                btn.setAttribute('aria-pressed', sel ? 'true' : 'false');
+                btn.className = `shrink-0 px-4 py-2 rounded-2xl font-cute text-sm sm:text-base transition-bounce border-2 ${
+                    sel ? 'bg-rose-600 text-white border-rose-600 shadow-md scale-105'
+                        : 'bg-white/90 text-pastel-subtext border-pastel-pink/40 hover:border-pastel-pinkDark/60 hover:text-pastel-text'}`;
+                btn.textContent = `${m}월`;
+                btn.addEventListener('click', () => selectMonth(m));
+                slider.appendChild(btn);
+            }
+        }
+        function scrollActiveMonth(smooth) {
+            const btn = $('month-slider').querySelector(`[data-month="${currentMonth}"]`);
+            if (btn) btn.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', inline: 'center', block: 'nearest' });
+        }
+        function selectMonth(month) {
+            if (month < 1) month = 12;
+            if (month > 12) month = 1;
+            currentMonth = month;
+            renderMonthSlider();
+            renderMonthCategories();
+            scrollActiveMonth(true);
+        }
+
+        // ---------- 통장별 현황 (입금 = 수입·저축 / 출금 = 지출, 월 요약과 같은 기준) ----------
+        function renderAccountSummary() {
+            $('account-summary-month').textContent = `${currentMonth}월`;
+            const container = $('account-summary-list');
+            container.innerHTML = '';
+            if (accountsList.length === 0) {
+                container.innerHTML = `<p class="text-[13px] sm:text-sm text-pastel-subtext col-span-full py-2 text-center">등록된 통장이 없어요. '통장 편집'에서 추가해 보세요!</p>`;
+                return;
+            }
+            const map = {};
+            accountsList.forEach(a => { map[a.id] = { in: 0, out: 0 }; });
+            CATEGORIES.forEach(cat => {
+                (budgetData[currentMonth][cat.id] || []).forEach(item => {
+                    const s = map[item.accountId];
+                    if (!s) return;
+                    const amt = Number(item.amount) || 0;
+                    if (cat.type === 'expense') s.out += amt; else s.in += amt;
+                });
+            });
+            accountsList.forEach(acc => {
+                const { in: i, out: o } = map[acc.id];
+                const net = i - o;
+                const card = document.createElement('div');
+                card.className = 'bg-pastel-bg/90 rounded-xl px-3.5 py-3 border border-pastel-purple/40 flex flex-col justify-between gap-1.5';
+                card.innerHTML = `
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-sm sm:text-base font-bold text-pastel-text flex items-center gap-1.5 min-w-0">
+                            ${ic('bank','text-pastel-purpleDark text-base shrink-0')}<span class="truncate">${escapeHtml(acc.name)}</span>
+                        </span>
+                        <span class="shrink-0 text-[13px] font-bold tabular-nums ${net < 0 ? 'text-rose-700' : 'text-emerald-700'}">${formatSigned(net)}</span>
+                    </div>
+                    <div class="flex items-center justify-between gap-2 text-[13px] sm:text-sm pt-1 border-t border-pastel-purple/20 font-medium tabular-nums">
+                        <span class="text-blue-700">입금 +${i.toLocaleString('ko-KR')}원</span>
+                        <span class="text-rose-700">출금 -${o.toLocaleString('ko-KR')}원</span>
+                    </div>`;
+                container.appendChild(card);
+            });
+        }
+
+        // ---------- 월 카테고리 카드 ----------
+        function renderMonthCategories() {
+            $('current-month-badge').textContent = `${currentMonth}월`;
+            const mData = budgetData[currentMonth];
+            const grid = $('categories-grid');
+            grid.innerHTML = '';
+
+            CATEGORIES.forEach(cat => {
+                const items = mData[cat.id] || [];
+                const catSum = sumItems(items);
+                const card = document.createElement('article');
+                card.className = `${cat.bgClass} rounded-3xl p-4 sm:p-5 border-2 ${cat.borderClass} shadow-card flex flex-col justify-between transition-all`;
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-3 pb-2.5 border-b border-black/5">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="w-9 h-9 rounded-full ${cat.iconClass} flex items-center justify-center text-xl shrink-0">${ic(cat.icon)}</span>
+                                <h2 class="font-cute text-lg sm:text-xl text-pastel-text truncate">${cat.name}</h2>
+                            </div>
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                <span class="text-[13px] sm:text-sm font-bold px-2.5 py-1 rounded-full tabular-nums ${cat.badgeClass}">${formatCurrency(catSum)}</span>
+                                <button type="button" onclick="openAddModal('${cat.id}')"
+                                    class="inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-[13px] font-bold ${cat.btnClass} shadow-sm transition-bounce whitespace-nowrap">
+                                    ${ic('plus')} 추가
+                                </button>
+                            </div>
+                        </div>
+                        <ul class="space-y-2 min-h-[48px]">
+                            ${items.length === 0
+                                ? `<li class="text-[13px] text-pastel-subtext text-center py-3 bg-white/50 rounded-2xl border border-dashed border-gray-300/70">아직 등록된 내역이 없어요</li>`
+                                : items.map(item => {
+                                    const zero = !Number(item.amount);
+                                    const accName = accountName(item.accountId);
+                                    return `
+                                    <li role="button" tabindex="0" aria-label="${escapeHtml(item.name)} 수정"
+                                        onclick="openEditModal('${cat.id}', '${item.id}')"
+                                        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openEditModal('${cat.id}', '${item.id}')}"
+                                        class="flex items-center justify-between gap-2 bg-white/85 hover:bg-white px-3.5 py-3 rounded-2xl shadow-sm cursor-pointer transition-colors ${zero ? 'opacity-70' : ''}">
+                                        <div class="flex items-center gap-2 min-w-0 flex-1">
+                                            <span class="text-sm sm:text-base font-medium text-pastel-text truncate">${escapeHtml(item.name)}</span>
+                                            ${accName ? `<span class="shrink-0 inline-flex items-center px-2 py-0.5 rounded-md bg-pastel-purple/30 text-purple-900 border border-pastel-purple/60 text-xs sm:text-[13px] font-semibold">${escapeHtml(accName)}</span>` : ''}
+                                        </div>
+                                        <div class="flex items-center gap-1 shrink-0">
+                                            <span class="text-sm sm:text-base tabular-nums ${zero ? 'font-medium text-pastel-subtext' : 'font-bold text-pastel-text'}">${formatCurrency(item.amount)}</span>
+                                            ${ic('chevron-right','text-pastel-subtext/70')}
+                                        </div>
+                                    </li>`;
+                                }).join('')}
+                        </ul>
+                    </div>`;
+                grid.appendChild(card);
+            });
+
+            const t = monthTotals(currentMonth);
+            $('month-total-income').textContent = formatCurrency(t.income);
+            $('month-total-saving').textContent = formatCurrency(t.saving);
+            renderAccountSummary();
+        }
+
+        // ---------- 모달 공통 (포커스 이동/복귀, Esc, 포커스 가두기) ----------
+        function showModal(id) {
+            const m = $(id);
+            m._opener = document.activeElement;
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+            const f = m.querySelector('[data-autofocus]') || m.querySelector('input:not([type=hidden]),select,button');
+            if (f) setTimeout(() => f.focus(), 30);
+        }
+        function hideModal(id) {
+            const m = $(id);
+            if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+            m.classList.add('hidden');
+            m.classList.remove('flex');
+            const o = m._opener;
+            if (o && document.contains(o) && typeof o.focus === 'function') o.focus();
+            m._opener = null;
+        }
+
+        // ---------- 확인 모달 (삭제 / 초기화 / 백업 불러오기 공용) ----------
+        function openConfirm({ title, desc, okText, onOk }) {
+            $('confirm-title').textContent = title;
+            $('delete-modal-desc').innerHTML = desc;
+            $('confirm-delete-btn').textContent = okText;
+            confirmAction = onOk;
+            showModal('delete-confirm-modal');
+        }
+        function closeConfirm() {
+            hideModal('delete-confirm-modal');
+            confirmAction = null;
+        }
+
+        // ---------- 항목 추가/수정 모달 ----------
+        function populateAccountSelect(selectedId = '') {
+            const sel = $('item-account');
+            sel.innerHTML = '<option value="">연결 안 함 (선택)</option>';
+            accountsList.forEach(acc => {
+                const opt = document.createElement('option');
+                opt.value = acc.id;
+                opt.textContent = acc.name;
+                if (acc.id === selectedId) opt.selected = true;
+                sel.appendChild(opt);
+            });
+        }
+        function prepareItemModal(cat, title, submitText, isEdit) {
+            $('modal-category-icon').className = `w-8 h-8 rounded-full flex items-center justify-center text-lg ${cat.iconClass}`;
+            $('modal-category-icon').innerHTML = `${ic(cat.icon)}`;
+            $('modal-title').textContent = title;
+            $('submit-modal-btn').textContent = submitText;
+            $('modal-delete-btn').classList.toggle('hidden', !isEdit);
+            $('item-account-label').textContent = cat.accountLabel;
+        }
+        window.openAddModal = function (categoryId) {
+            const cat = CATEGORIES.find(c => c.id === categoryId);
+            if (!cat) return;
+            activeModalCategoryId = categoryId;
+            editingItemId = null;
+            prepareItemModal(cat, `${currentMonth}월 ${cat.name} 추가`, '추가하기', false);
+            $('item-name').value = '';
+            $('item-amount').value = '';
+            populateAccountSelect('');
+            showModal('add-item-modal');
+        };
+        window.openEditModal = function (categoryId, itemId) {
+            const cat = CATEGORIES.find(c => c.id === categoryId);
+            const item = findItem(currentMonth, categoryId, itemId);
+            if (!cat || !item) return;
+            activeModalCategoryId = categoryId;
+            editingItemId = itemId;
+            prepareItemModal(cat, `${currentMonth}월 ${cat.name} 수정`, '수정 완료', true);
+            $('item-name').value = item.name;
+            $('item-amount').value = item.amount ? Number(item.amount).toLocaleString('ko-KR') : '0';
+            populateAccountSelect(item.accountId || '');
+            showModal('add-item-modal');
+        };
+        function closeAddModal() {
+            hideModal('add-item-modal');
+            activeModalCategoryId = null;
+            editingItemId = null;
+        }
+
+        // 수정창의 "삭제" → 확인 모달을 거쳐 삭제
+        function requestDeleteFromEdit() {
+            if (!activeModalCategoryId || !editingItemId) return;
+            const month = currentMonth, catId = activeModalCategoryId, itemId = editingItemId;
+            const item = findItem(month, catId, itemId);
+            if (!item) return;
+            const name = item.name;
+            closeAddModal();
+            openConfirm({
+                title: '정말 삭제할까요?',
+                desc: `<strong class="text-pastel-text">'${escapeHtml(name)}'</strong> (${formatCurrency(item.amount)}) 항목을<br>정말 삭제하시겠습니까?`,
+                okText: '삭제하기',
+                onOk: () => {
+                    const list = budgetData[month][catId];
+                    const idx = list.findIndex(i => i.id === itemId);
+                    if (idx === -1) return;
+                    list.splice(idx, 1);
+                    commit(`'${name}' 삭제되었어요`);
+                }
+            });
+        }
+
+        // ---------- 통장 관리 모달 ----------
+        function openAccountManagerModal() {
+            tempAccountsList = accountsList.map(a => ({ ...a }));
+            $('new-account-name').value = '';
+            renderManagedAccountsList();
+            showModal('account-manager-modal');
+        }
+        function closeAccountManagerModal() {
+            hideModal('account-manager-modal');
+            tempAccountsList = [];
+        }
+        function renderManagedAccountsList() {
+            const listEl = $('managed-accounts-list');
+            listEl.innerHTML = '';
+            if (tempAccountsList.length === 0) {
+                listEl.innerHTML = '<p class="text-[13px] text-center text-pastel-subtext py-4">등록된 통장이 없어요!</p>';
+                return;
+            }
+            tempAccountsList.forEach((acc, idx) => {
+                const row = document.createElement('div');
+                row.className = 'flex items-center gap-2 bg-pastel-bg px-3 py-2 rounded-2xl border border-pastel-purple/40';
+                row.innerHTML = `
+                    ${ic('bank','text-pastel-purpleDark shrink-0')}
+                    <input type="text" value="${escapeHtml(acc.name)}" maxlength="16" data-idx="${idx}" aria-label="통장 이름 (수정 가능)"
+                        class="flex-1 min-w-0 bg-transparent text-base font-medium text-pastel-text rounded-lg px-1.5 py-1 focus:outline-none focus:bg-white">
+                    <div class="flex items-center gap-1 shrink-0">
+                        <button type="button" onclick="moveManagedAccount(${idx}, -1)" ${idx === 0 ? 'disabled' : ''}
+                            class="w-8 h-8 rounded-full text-gray-500 hover:text-purple-700 hover:bg-purple-100 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center transition-colors" aria-label="위로 이동">
+                            ${ic('arrow-up','text-sm')}
+                        </button>
+                        <button type="button" onclick="moveManagedAccount(${idx}, 1)" ${idx === tempAccountsList.length - 1 ? 'disabled' : ''}
+                            class="w-8 h-8 rounded-full text-gray-500 hover:text-purple-700 hover:bg-purple-100 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center transition-colors" aria-label="아래로 이동">
+                            ${ic('arrow-down','text-sm')}
+                        </button>
+                        <button type="button" onclick="removeManagedAccount(${idx})" class="w-8 h-8 rounded-full text-gray-500 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-colors" aria-label="통장 삭제">
+                            ${ic('trash','text-sm')}
+                        </button>
+                    </div>`;
+                listEl.appendChild(row);
+            });
+        }
+        window.moveManagedAccount = function (index, dir) {
+            const t = index + dir;
+            if (t < 0 || t >= tempAccountsList.length) return;
+            [tempAccountsList[index], tempAccountsList[t]] = [tempAccountsList[t], tempAccountsList[index]];
+            renderManagedAccountsList();
+        };
+        window.removeManagedAccount = function (index) {
+            tempAccountsList.splice(index, 1);
+            renderManagedAccountsList();
+        };
+        function saveAccountManagerChanges() {
+            const names = new Set();
+            for (const a of tempAccountsList) {
+                a.name = a.name.trim();
+                if (!a.name) { showToast('통장 이름을 비워 둘 수 없어요', true); return; }
+                const key = a.name.toLowerCase();
+                if (names.has(key)) { showToast(`'${a.name}' 이름이 중복돼요`, true); return; }
+                names.add(key);
+            }
+            const keep = new Set(tempAccountsList.map(a => a.id));
+            const removed = accountsList.filter(a => !keep.has(a.id)).map(a => a.id);
+            accountsList = tempAccountsList.map(a => ({ ...a }));
+            if (removed.length) {   // 삭제된 통장은 전체 월 내역에서 연결 해제 (이름 변경은 id라서 그대로 유지)
+                for (let m = 1; m <= 12; m++) {
+                    CATEGORIES.forEach(cat => (budgetData[m][cat.id] || []).forEach(it => {
+                        if (removed.includes(it.accountId)) it.accountId = '';
+                    }));
+                }
+            }
+            const ok = persistAll();
+            closeAccountManagerModal();
+            renderMonthCategories();
+            if (ok) showToast('내 통장 목록이 저장되었어요');
+            else showToast('저장에 실패했어요. 백업 내보내기로 데이터를 보관해 주세요', true);
+        }
+
+        // ---------- 백업 / 불러오기 / 초기화 ----------
+        function exportData() {
+            const payload = { app: '2026-money', version: 3, exportedAt: new Date().toISOString(), accounts: accountsList, data: budgetData };
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `2026-money-backup-${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1500);
+            showToast('백업 파일을 내보냈어요');
+        }
+        function handleImportFile(file) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onerror = () => showToast('파일을 읽지 못했어요', true);
+            reader.onload = () => {
+                let p;
+                try { p = JSON.parse(reader.result); } catch (e) { p = null; }
+                const accounts = p && p.app === '2026-money' ? normalizeAccounts(p.accounts) : null;
+                if (!accounts || !p.data || typeof p.data !== 'object') {
+                    showToast('올바른 백업 파일이 아니에요', true);
+                    return;
+                }
+                closeAccountManagerModal();
+                openConfirm({
+                    title: '백업을 불러올까요?',
+                    desc: '지금 입력된 내역과 통장 목록이<br>백업 파일 내용으로 바뀌어요.',
+                    okText: '불러오기',
+                    onOk: () => {
+                        accountsList = accounts;
+                        budgetData = normalizeData(p.data, accounts);
+                        persistAll();
+                        updateAnnualDashboard();
+                        renderMonthCategories();
+                        showToast('백업을 불러왔어요');
+                    }
+                });
+            };
+            reader.readAsText(file);
+        }
+        function requestReset() {
+            closeAccountManagerModal();
+            openConfirm({
+                title: '전체 초기화할까요?',
+                desc: '모든 월의 입력 내역과 통장 목록이 지워지고<br>기본 상태로 돌아가요. 되돌릴 수 없어요.',
+                okText: '초기화',
+                onOk: () => {
+                    [STORAGE_KEY, ACCOUNTS_STORAGE_KEY, OLD_STORAGE_KEY, OLD_ACCOUNTS_KEY].forEach(k => {
+                        try { localStorage.removeItem(k); } catch (e) { /* 무시 */ }
+                    });
+                    accountsList = defaultAccounts();
+                    budgetData = emptyData();
+                    persistAll();
+                    updateAnnualDashboard();
+                    renderMonthCategories();
+                    showToast('기본 카테고리 상태로 초기화되었어요');
+                }
+            });
+        }
+
+        // ---------- 토스트 ----------
+        let toastTimer = null;
+        function showToast(message, isError = false) {
+            const toast = $('toast-msg');
+            $('toast-text').textContent = message;
+            toast.classList.toggle('bg-rose-700', isError);
+            toast.classList.toggle('bg-pastel-text', !isError);
+            toast.classList.remove('opacity-0');
+            toast.classList.add('opacity-100');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0');
+            }, isError ? 4200 : 2200);
+        }
+
+        // ---------- 이벤트 바인딩 ----------
+        document.addEventListener('DOMContentLoaded', () => {
+            hydrateIcons();
+            if (!persistAll()) showToast('이 브라우저에서는 저장이 안 될 수 있어요. 백업 내보내기를 활용해 주세요', true);
+            updateAnnualDashboard();
+            renderMonthSlider();
+            renderMonthCategories();
+            scrollActiveMonth(false);
+
+            $('prev-month-btn').addEventListener('click', () => selectMonth(currentMonth - 1));
+            $('next-month-btn').addEventListener('click', () => selectMonth(currentMonth + 1));
+
+            // 항목 모달
+            $('close-modal-btn').addEventListener('click', closeAddModal);
+            $('cancel-modal-btn').addEventListener('click', closeAddModal);
+            $('modal-delete-btn').addEventListener('click', requestDeleteFromEdit);
+            $('add-item-modal').addEventListener('click', e => { if (e.target.id === 'add-item-modal') closeAddModal(); });
+
+            // 통장 관리 모달
+            $('open-account-manager-btn').addEventListener('click', openAccountManagerModal);
+            $('quick-manage-account-btn').addEventListener('click', openAccountManagerModal);
+            $('close-account-modal-btn').addEventListener('click', closeAccountManagerModal);
+            $('cancel-account-modal-btn').addEventListener('click', closeAccountManagerModal);
+            $('save-account-modal-btn').addEventListener('click', saveAccountManagerChanges);
+            $('account-manager-modal').addEventListener('click', e => { if (e.target.id === 'account-manager-modal') closeAccountManagerModal(); });
+            $('managed-accounts-list').addEventListener('input', e => {
+                const idx = e.target.dataset && e.target.dataset.idx;
+                if (idx !== undefined && tempAccountsList[idx]) tempAccountsList[idx].name = e.target.value;
+            });
+            $('add-account-form').addEventListener('submit', e => {
+                e.preventDefault();
+                const input = $('new-account-name');
+                const val = input.value.trim();
+                if (!val) return;
+                if (tempAccountsList.some(a => a.name.trim().toLowerCase() === val.toLowerCase())) {
+                    showToast('이미 목록에 있는 통장이에요', true);
+                    return;
+                }
+                tempAccountsList.push({ id: uid('acc'), name: val });
+                input.value = '';
+                renderManagedAccountsList();
+            });
+
+            // 데이터 관리
+            $('export-data-btn').addEventListener('click', exportData);
+            $('import-data-btn').addEventListener('click', () => $('import-file-input').click());
+            $('import-file-input').addEventListener('change', e => {
+                handleImportFile(e.target.files && e.target.files[0]);
+                e.target.value = '';
+            });
+            $('reset-demo-btn').addEventListener('click', requestReset);
+
+            // 확인 모달
+            $('cancel-delete-btn').addEventListener('click', closeConfirm);
+            $('confirm-delete-btn').addEventListener('click', () => {
+                const fn = confirmAction;
+                closeConfirm();
+                if (fn) fn();
+            });
+            $('delete-confirm-modal').addEventListener('click', e => { if (e.target.id === 'delete-confirm-modal') closeConfirm(); });
+
+            // 금액 입력: 숫자만 + 천단위 콤마 + 상한
+            const amountInput = $('item-amount');
+            amountInput.addEventListener('input', e => {
+                const raw = e.target.value.replace(/[^\d]/g, '').slice(0, 12);
+                e.target.value = raw ? clampAmount(parseInt(raw, 10)).toLocaleString('ko-KR') : '';
+            });
+            amountInput.addEventListener('focus', () => amountInput.select());
+
+            // 항목 추가/수정 제출
+            $('add-item-form').addEventListener('submit', e => {
+                e.preventDefault();
+                if (!activeModalCategoryId) return;
+                const name = $('item-name').value.trim();
+                const amount = parseAmountValue(amountInput.value);
+                const accountId = $('item-account').value;
+                if (!name) { showToast('항목 이름을 입력해 주세요', true); return; }
+                const list = budgetData[currentMonth][activeModalCategoryId];
+                let msg;
+                if (editingItemId) {
+                    const t = list.find(i => i.id === editingItemId);
+                    if (t) { t.name = name; t.amount = amount; t.accountId = accountId; }
+                    msg = `'${name}' 수정되었어요`;
+                } else {
+                    list.push({ id: uid('item'), name, amount, accountId });
+                    msg = `${currentMonth}월 내역에 '${name}' 추가 완료`;
+                }
+                closeAddModal();
+                commit(msg);
+            });
+
+            // Esc로 닫기 + Tab 포커스 가두기
+            const CLOSERS = { 'delete-confirm-modal': closeConfirm, 'add-item-modal': closeAddModal, 'account-manager-modal': closeAccountManagerModal };
+            document.addEventListener('keydown', e => {
+                const openId = Object.keys(CLOSERS).find(id => !$(id).classList.contains('hidden'));
+                if (!openId) return;
+                if (e.key === 'Escape') { CLOSERS[openId](); return; }
+                if (e.key !== 'Tab') return;
+                const f = [...$(openId).querySelectorAll('button:not([disabled]),input:not([type=hidden]),select,[tabindex]:not([tabindex="-1"])')]
+                    .filter(el => el.offsetParent !== null);
+                if (!f.length) return;
+                const first = f[0], last = f[f.length - 1];
+                if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+                else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+            });
+
+            // 키보드가 올라와도 입력창이 가려지지 않도록
+            document.addEventListener('focusin', e => {
+                if (e.target.matches && e.target.matches('input,select')) {
+                    setTimeout(() => e.target.scrollIntoView({ block: 'center', behavior: 'smooth' }), 300);
+                }
+            });
+
+            // 모바일 스와이프로 월 이동
+            let sx = 0, sy = 0;
+            const mainArea = $('month-content-area');
+            mainArea.addEventListener('touchstart', e => { sx = e.changedTouches[0].screenX; sy = e.changedTouches[0].screenY; }, { passive: true });
+            mainArea.addEventListener('touchend', e => {
+                const dx = e.changedTouches[0].screenX - sx;
+                const dy = e.changedTouches[0].screenY - sy;
+                if (Math.abs(dx) > 65 && Math.abs(dx) > Math.abs(dy) * 1.5) selectMonth(currentMonth + (dx < 0 ? 1 : -1));
+            }, { passive: true });
+        });
+
+    </script>
+</body>
+</html>
