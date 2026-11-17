@@ -81,6 +81,8 @@
         }
         .hidden { display: none; }
         html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+        .cute-chip { transition: transform .2s cubic-bezier(0.34,1.56,0.64,1); }
+        .cute-chip:hover { transform: translateY(-2px) rotate(-1deg); }
     </style>
 </head>
 <body class="text-pastel-text font-sans min-h-screen pb-16 selection:bg-pastel-pink selection:text-pastel-text overflow-x-hidden">
@@ -191,9 +193,21 @@
                     <span id="current-month-badge" class="font-cute text-lg sm:text-2xl text-pastel-pinkDark">1월</span>
                     <span class="font-cute text-base sm:text-xl text-pastel-text">예산 내역</span>
                 </div>
-                <div class="grid grid-cols-2 gap-2 text-[13px] sm:text-sm font-medium">
-                    <div class="text-blue-800 bg-pastel-blue/40 px-3 py-1.5 rounded-xl flex items-center justify-between gap-2"><span>수입</span><strong id="month-total-income" class="tabular-nums">0원</strong></div>
-                    <div class="text-emerald-800 bg-pastel-mint/50 px-3 py-1.5 rounded-xl flex items-center justify-between gap-2"><span>저축</span><strong id="month-total-saving" class="tabular-nums">0원</strong></div>
+                <div class="grid grid-cols-2 gap-2 sm:gap-3">
+                    <div class="cute-chip bg-gradient-to-r from-pastel-blue/70 to-[#EAF5FF] border-2 border-dashed border-pastel-blueDark/40 rounded-full pl-1.5 pr-3 py-1.5 flex items-center gap-2 min-w-0">
+                        <span class="shrink-0 w-8 h-8 rounded-full bg-white shadow-sm ring-2 ring-pastel-blue flex items-center justify-center text-base">💰</span>
+                        <div class="min-w-0 flex-1 leading-tight">
+                            <span class="block font-cute text-[13px] text-blue-800/80">이번 달 수입</span>
+                            <strong id="month-total-income" class="block truncate text-sm sm:text-base font-black text-blue-900 tabular-nums">0원</strong>
+                        </div>
+                    </div>
+                    <div class="cute-chip bg-gradient-to-r from-pastel-mint/80 to-[#EEFDF0] border-2 border-dashed border-pastel-mintDark/40 rounded-full pl-1.5 pr-3 py-1.5 flex items-center gap-2 min-w-0">
+                        <span class="shrink-0 w-8 h-8 rounded-full bg-white shadow-sm ring-2 ring-pastel-mint flex items-center justify-center text-base">🐷</span>
+                        <div class="min-w-0 flex-1 leading-tight">
+                            <span class="block font-cute text-[13px] text-emerald-800/80">이번 달 저축</span>
+                            <strong id="month-total-saving" class="block truncate text-sm sm:text-base font-black text-emerald-900 tabular-nums">0원</strong>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -201,9 +215,6 @@
             <div class="bg-white/85 backdrop-blur-sm rounded-2xl p-4 sm:p-5 mb-5 border border-pastel-purple/50 shadow-card">
                 <div id="account-summary-header" class="flex items-center justify-between">
                     <button type="button" id="toggle-account-summary-btn" aria-expanded="false" aria-controls="account-summary-list" class="font-cute text-base sm:text-lg text-pastel-text flex items-center gap-1.5 text-left"><i data-ic="wallet" class="text-pastel-purpleDark text-xl"></i><span><span id="account-summary-month">1월</span> 통장별 현황</span><span id="account-summary-chevron" class="inline-flex text-pastel-subtext transition-transform"><i data-ic="chevron-down"></i></span></button>
-                    <button type="button" id="quick-manage-account-btn" class="text-[13px] sm:text-sm text-pastel-purpleDark hover:underline font-semibold">
-                        + 통장 편집
-                    </button>
                 </div>
                 <div id="account-summary-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
                     <!-- JS로 통장별 합계 카드 렌더링 -->
@@ -350,7 +361,7 @@
     </div>
 
     <!-- 토스트 알림 메시지 -->
-    <div id="toast-msg" role="status" aria-live="polite" class="fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-50 bg-pastel-purple text-purple-950 border border-pastel-purpleDark/40 text-[13px] sm:text-sm font-medium px-5 py-3 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-300 flex items-center gap-1.5 whitespace-nowrap max-w-[92vw]">
+    <div id="toast-msg" role="status" aria-live="polite" class="fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-50 bg-pastel-text text-white text-[13px] sm:text-sm font-medium px-5 py-3 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-300 flex items-center gap-1.5 whitespace-nowrap max-w-[92vw]">
         <i data-ic="check" class="shrink-0"></i>
         <span id="toast-text" class="truncate">저장되었습니다!</span>
     </div>
@@ -552,7 +563,7 @@
         let currentMonth = now.getFullYear() === 2026 ? now.getMonth() + 1 : 1;   // 오늘이 속한 달로 시작
         let activeModalCategoryId = null;
         let editingItemId = null;
-        let confirmAction = null, confirmAltAction = null;
+        let confirmAction = null, confirmAltAction = null, confirmCancelAction = null;
         let accountSummaryOpen = false;      // 통장별 현황: 기본은 접힘
         let tempAccountsList = [];
         const initial = loadState();
@@ -803,12 +814,13 @@
         }
 
         // ---------- 확인 모달 (삭제 / 초기화 / 백업 불러오기 공용) ----------
-        function openConfirm({ title, desc, okText, onOk, altText, onAlt }) {
+        function openConfirm({ title, desc, okText, onOk, altText, onAlt, onCancel }) {
             $('confirm-title').textContent = title;
             $('delete-modal-desc').innerHTML = desc;
             $('confirm-delete-btn').textContent = okText;
             confirmAction = onOk;
             confirmAltAction = onAlt || null;
+            confirmCancelAction = onCancel || null;
             const hasAlt = !!altText;
             const alt = $('confirm-alt-btn');
             alt.textContent = altText || '';
@@ -823,6 +835,12 @@
             hideModal('delete-confirm-modal');
             confirmAction = null;
             confirmAltAction = null;
+            confirmCancelAction = null;
+        }
+        function cancelConfirm() {            // 취소·바깥 클릭·Esc → 필요하면 이전 화면으로 복귀
+            const fn = confirmCancelAction;
+            closeConfirm();
+            if (fn) fn();
         }
 
         // ---------- 항목 추가/수정 모달 ----------
@@ -886,8 +904,17 @@
             const item = findItem(month, catId, itemId);
             if (!item) return;
             const name = item.name;
+            const draft = { name: $('item-name').value, amount: $('item-amount').value, account: $('item-account').value };
             closeAddModal();
             openConfirm({
+                onCancel: () => {
+                    if (!findItem(month, catId, itemId)) return;
+                    if (currentMonth !== month) selectMonth(month);
+                    openEditModal(catId, itemId);
+                    $('item-name').value = draft.name;
+                    $('item-amount').value = draft.amount;
+                    $('item-account').value = draft.account;
+                },
                 title: '정말 삭제할까요?',
                 desc: `<strong class="text-pastel-text">'${escapeHtml(name)}'</strong> 항목을<br>이 달만 삭제할지, 모든 월(1~12월)에서 삭제할지 골라 주세요.<br><span class="text-[13px]">모든 월 삭제는 같은 이름의 항목을 전부 지워요.</span>`,
                 okText: '이 달만 삭제',
@@ -933,7 +960,7 @@
                 row.innerHTML = `
                     ${ic('bank','text-pastel-purpleDark shrink-0')}
                     <input type="text" value="${escapeHtml(acc.name)}" maxlength="16" data-idx="${idx}" aria-label="통장 이름 (수정 가능)"
-                        class="flex-1 min-w-0 bg-transparent text-base font-medium text-pastel-text rounded-lg px-1.5 py-1 focus:outline-none focus:bg-white">
+                        class="flex-1 min-w-0 appearance-none bg-pastel-bg text-base font-medium text-pastel-text rounded-lg px-1.5 py-1 border border-transparent focus:outline-none focus:bg-pastel-bg focus:border-pastel-purple">
                     <div class="flex items-center gap-1 shrink-0">
                         <button type="button" onclick="moveManagedAccount(${idx}, -1)" ${idx === 0 ? 'disabled' : ''}
                             class="w-8 h-8 rounded-full text-gray-500 hover:text-purple-700 hover:bg-purple-100 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center transition-colors" aria-label="위로 이동">
@@ -1054,8 +1081,8 @@
         function showToast(message, isError = false) {
             const toast = $('toast-msg');
             $('toast-text').textContent = message;
-            toast.classList.toggle('bg-pastel-pink', isError);
-            toast.classList.toggle('bg-pastel-purple', !isError);
+            toast.classList.toggle('bg-rose-700', isError);
+            toast.classList.toggle('bg-pastel-text', !isError);
             toast.classList.remove('opacity-0');
             toast.classList.add('opacity-100');
             clearTimeout(toastTimer);
@@ -1321,7 +1348,6 @@
 
             // 통장 관리 모달
             $('open-account-manager-btn').addEventListener('click', openAccountManagerModal);
-            $('quick-manage-account-btn').addEventListener('click', openAccountManagerModal);
             $('close-account-modal-btn').addEventListener('click', closeAccountManagerModal);
             $('cancel-account-modal-btn').addEventListener('click', closeAccountManagerModal);
             $('save-account-modal-btn').addEventListener('click', saveAccountManagerChanges);
@@ -1354,7 +1380,7 @@
             $('reset-demo-btn').addEventListener('click', requestReset);
 
             // 확인 모달
-            $('cancel-delete-btn').addEventListener('click', closeConfirm);
+            $('cancel-delete-btn').addEventListener('click', cancelConfirm);
             $('confirm-delete-btn').addEventListener('click', () => {
                 const fn = confirmAction;
                 closeConfirm();
@@ -1365,7 +1391,7 @@
                 closeConfirm();
                 if (fn) fn();
             });
-            $('delete-confirm-modal').addEventListener('click', e => { if (e.target.id === 'delete-confirm-modal') closeConfirm(); });
+            $('delete-confirm-modal').addEventListener('click', e => { if (e.target.id === 'delete-confirm-modal') cancelConfirm(); });
 
             // 금액 입력: 숫자만 + 천단위 콤마 + 상한
             const amountInput = $('item-amount');
@@ -1420,7 +1446,7 @@
             });
 
             // Esc로 닫기 + Tab 포커스 가두기
-            const CLOSERS = { 'delete-confirm-modal': closeConfirm, 'add-item-modal': closeAddModal, 'account-manager-modal': closeAccountManagerModal };
+            const CLOSERS = { 'delete-confirm-modal': cancelConfirm, 'add-item-modal': closeAddModal, 'account-manager-modal': closeAccountManagerModal };
             document.addEventListener('keydown', e => {
                 const openId = Object.keys(CLOSERS).find(id => !$(id).classList.contains('hidden'));
                 if (!openId) return;
