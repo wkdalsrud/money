@@ -82,8 +82,30 @@
 </head>
 <body class="text-pastel-text font-sans min-h-screen pb-16 selection:bg-pastel-pink selection:text-pastel-text overflow-x-hidden">
 
+<!-- 로그인 화면 (앱 맨 앞) -->
+    <div id="login-screen" class="fixed inset-0 z-40 flex items-center justify-center p-6 overflow-y-auto" style="background-color:#FFF9FB;background-image:radial-gradient(#FFD6E0 1.2px,transparent 1.2px),radial-gradient(#E2C2FF 1.2px,#FFF9FB 1.2px);background-size:32px 32px;background-position:0 0,16px 16px;">
+        <div class="w-full max-w-sm text-center my-auto">
+            <div class="inline-flex items-center gap-2 bg-white/90 px-6 py-2.5 rounded-full shadow-soft border-2 border-pastel-pink">
+                <i data-ic="piggy" class="text-3xl text-pastel-pinkDark"></i>
+                <h1 class="font-cute text-3xl tracking-wide bg-gradient-to-r from-pastel-pinkDark via-pastel-purpleDark to-pastel-blueDark bg-clip-text text-transparent">2026 Money</h1>
+            </div>
+            <p class="text-[13px] sm:text-sm text-pastel-subtext mt-3 font-medium">차곡차곡 모으는 나만의 2026년 파스텔 가계부</p>
+            <div class="mt-8 bg-white/90 rounded-3xl p-6 shadow-soft border-2 border-white">
+                <div id="login-checking" class="py-4 text-sm text-pastel-subtext font-medium">
+                    <span class="inline-block w-4 h-4 border-2 border-pastel-pink border-t-pastel-pinkDark rounded-full animate-spin align-[-2px] mr-1.5"></span>로그인 확인 중…
+                </div>
+                <div id="login-actions" class="hidden space-y-3">
+                    <p class="text-sm text-pastel-text leading-relaxed">로그인하면 여러 기기에서<br>같은 가계부를 볼 수 있어요</p>
+                    <button id="google-login-btn" type="button" class="w-full py-3 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-base shadow-md transition-bounce inline-flex items-center justify-center gap-2"><i data-ic="user"></i> 구글로 로그인</button>
+                    <p id="login-msg" role="status" class="text-[13px] min-h-[1.25rem] leading-snug text-amber-800 font-medium"></p>
+                    <button id="local-only-btn" type="button" class="text-[13px] text-pastel-subtext underline underline-offset-2 hover:text-pastel-text">로그인 없이 이 기기에서만 사용</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 메인 컨테이너 -->
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 pt-6 sm:pt-10">
+    <div id="app-main" class="hidden max-w-4xl mx-auto px-4 sm:px-6 pt-6 sm:pt-10">
         
         <!-- 1. 상단 헤더 영역 -->
         <header class="text-center mb-6 sm:mb-8 relative">
@@ -121,10 +143,10 @@
             <!-- 2분할 박스 그리드 -->
             <div class="grid grid-cols-2 gap-3 sm:gap-4">
                 <!-- 박스 1: 연간 수입 -->
-                <div class="bg-gradient-to-br from-pastel-blue/40 to-pastel-blue/15 rounded-2xl p-4 sm:p-5 border border-pastel-blue/60 flex flex-col justify-between">
-                    <div class="flex items-center justify-between mb-2">
+                <div class="bg-gradient-to-br from-pastel-blue/40 to-pastel-blue/15 rounded-2xl px-4 sm:px-5 pt-3 pb-4 border border-pastel-blue/60 flex flex-col justify-start gap-0.5">
+                    <div class="flex items-center justify-between mb-0">
                         <span class="text-[13px] sm:text-sm font-bold text-blue-800/80">연간 수입</span>
-                        <span class="w-8 h-8 rounded-full bg-white/80 flex items-center justify-center text-blue-500 shadow-sm">
+                        <span class="w-7 h-7 rounded-full bg-white/80 flex items-center justify-center text-blue-500 shadow-sm">
                             <i data-ic="dollar" class="text-lg"></i>
                         </span>
                     </div>
@@ -132,10 +154,10 @@
                 </div>
 
                 <!-- 박스 2: 연간 저축 -->
-                <div class="bg-gradient-to-br from-pastel-mint/50 to-pastel-mint/20 rounded-2xl p-4 sm:p-5 border border-pastel-mintDark/30 flex flex-col justify-between">
-                    <div class="flex items-center justify-between mb-2">
+                <div class="bg-gradient-to-br from-pastel-mint/50 to-pastel-mint/20 rounded-2xl px-4 sm:px-5 pt-3 pb-4 border border-pastel-mintDark/30 flex flex-col justify-start gap-0.5">
+                    <div class="flex items-center justify-between mb-0">
                         <span class="text-[13px] sm:text-sm font-bold text-emerald-800/80">연간 저축</span>
-                        <span class="w-8 h-8 rounded-full bg-white/80 flex items-center justify-center text-emerald-500 shadow-sm">
+                        <span class="w-7 h-7 rounded-full bg-white/80 flex items-center justify-center text-emerald-500 shadow-sm">
                             <i data-ic="piggy" class="text-lg"></i>
                         </span>
                     </div>
@@ -237,6 +259,20 @@
                         <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-[13px] font-bold text-pastel-subtext">원</span>
                     </div>
                 </div>
+
+                <fieldset id="add-scope-field" class="hidden">
+                    <legend class="block text-[13px] font-bold text-pastel-subtext mb-1">추가 범위</legend>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="add-scope" value="month" checked class="peer sr-only">
+                            <span id="scope-month-label" class="block text-center text-[13px] font-bold py-2.5 rounded-2xl border-2 border-pastel-pink/60 bg-pastel-bg text-pastel-subtext peer-checked:bg-rose-600 peer-checked:border-rose-600 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-purple-700 transition-colors">이 달에만</span>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="add-scope" value="all" class="peer sr-only">
+                            <span class="block text-center text-[13px] font-bold py-2.5 rounded-2xl border-2 border-pastel-pink/60 bg-pastel-bg text-pastel-subtext peer-checked:bg-rose-600 peer-checked:border-rose-600 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-purple-700 transition-colors">모든 월 (1~12월)</span>
+                        </label>
+                    </div>
+                </fieldset>
 
                 <div class="flex gap-2 pt-1.5">
                     <button type="button" id="cancel-modal-btn" class="flex-1 py-2.5 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-sm transition-bounce">
@@ -761,6 +797,10 @@
             $('submit-modal-btn').textContent = submitText;
             $('modal-delete-btn').classList.toggle('hidden', !isEdit);
             $('item-account-label').textContent = cat.accountLabel;
+            $('add-scope-field').classList.toggle('hidden', isEdit);
+            $('scope-month-label').textContent = `${currentMonth}월에만`;
+            const r = document.querySelector('input[name="add-scope"][value="month"]');
+            if (r) r.checked = true;
         }
         window.openAddModal = function (categoryId) {
             const cat = CATEGORIES.find(c => c.id === categoryId);
@@ -1059,13 +1099,34 @@
             if (md.fromCache) setSyncStatus(online ? 'connecting' : 'offline');
             else setSyncStatus('synced');
         }
+        // ---------- 로그인 화면 ----------
+        let localOnly = false, authResolved = false, gateTimer = null;
+        function showGate(mode, msg) {          // mode: 'checking' | 'login'
+            $('login-screen').classList.remove('hidden');
+            $('app-main').classList.add('hidden');
+            $('login-checking').classList.toggle('hidden', mode !== 'checking');
+            $('login-actions').classList.toggle('hidden', mode === 'checking');
+            $('login-msg').textContent = msg || '';
+        }
+        function showMain() {
+            $('login-screen').classList.add('hidden');
+            $('app-main').classList.remove('hidden');
+            scrollActiveMonth(false);
+        }
         function handleAuth(user) {
+            authResolved = true;
+            clearTimeout(gateTimer);
             if (cloud.unsub) { cloud.unsub(); cloud.unsub = null; }
             cloud.user = user || null;
             cloud.ref = null;
             snapCount = 0;
             renderAuthButton();
-            if (!user) { setSyncStatus('signedout'); return; }
+            if (!user) {
+                setSyncStatus('signedout');
+                if (localOnly) showMain(); else showGate('login');
+                return;
+            }
+            showMain();
             if (localUid && localUid !== user.uid) {   // 다른 계정으로 로그인 → 이전 계정 데이터가 섞이지 않게 초기화
                 backupLocal();
                 accountsList = defaultAccounts();
@@ -1083,7 +1144,7 @@
                 err => { console.warn(err); setSyncStatus('error', err.code); });
         }
         async function initCloud() {
-            if (!FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey.startsWith('여기에')) { setSyncStatus('unconfigured'); return; }
+            if (!FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey.startsWith('여기에')) { setSyncStatus('unconfigured'); showGate('login', 'Firebase 설정이 필요해요. 지금은 이 기기에서만 사용할 수 있어요.'); return; }
             setSyncStatus('connecting');
             try {
                 const base = `https://www.gstatic.com/firebasejs/${FB_VERSION}/`;
@@ -1102,6 +1163,7 @@
             } catch (e) {
                 console.warn('Firebase 로드 실패', e);
                 setSyncStatus('offline-mode');
+                showGate('login', '클라우드에 연결하지 못했어요. 인터넷 연결을 확인하거나 이 기기에서만 사용해 주세요.');
             }
         }
         async function signInGoogle() {
@@ -1127,7 +1189,7 @@
                     title: '로그아웃할까요?',
                     desc: '로그아웃해도 이 기기의 데이터는 그대로 남아 있어요.<br>다시 로그인하면 동기화가 이어져요.',
                     okText: '로그아웃',
-                    onOk: () => cloud.authM.signOut(cloud.auth)
+                    onOk: () => { localOnly = false; cloud.authM.signOut(cloud.auth); }
                 });
             } else {
                 signInGoogle();
@@ -1142,6 +1204,14 @@
             renderMonthSlider();
             renderMonthCategories();
             scrollActiveMonth(false);
+
+            // 로그인 화면 (로그인 성공 전에는 메인 화면을 보여주지 않음)
+            showGate('checking');
+            gateTimer = setTimeout(() => {
+                if (!authResolved && !localOnly) showGate('login', '연결이 느려요. 잠시 후 다시 시도하거나 이 기기에서만 사용해 주세요.');
+            }, 6000);
+            $('google-login-btn').addEventListener('click', onAuthButtonClick);
+            $('local-only-btn').addEventListener('click', () => { localOnly = true; setSyncStatus('signedout'); showMain(); });
 
             // 클라우드 동기화
             renderAuthButton();
@@ -1228,8 +1298,19 @@
                     if (t) { t.name = name; t.amount = amount; t.accountId = accountId; }
                     msg = `'${name}' 수정되었어요`;
                 } else {
-                    list.push({ id: uid('item'), name, amount, accountId });
-                    msg = `${currentMonth}월 내역에 '${name}' 추가 완료`;
+                    const scope = (document.querySelector('input[name="add-scope"]:checked') || {}).value;
+                    if (scope === 'all') {
+                        let skipped = 0;
+                        for (let m = 1; m <= 12; m++) {
+                            const l = budgetData[m][activeModalCategoryId];
+                            if (l.some(i => i.name === name)) { skipped++; continue; }   // 같은 이름이 이미 있는 달은 건너뜀
+                            l.push({ id: uid('item'), name, amount, accountId });
+                        }
+                        msg = `'${name}' 항목을 모든 월에 추가했어요` + (skipped ? ` (이미 있는 ${skipped}개 월은 건너뜀)` : '');
+                    } else {
+                        list.push({ id: uid('item'), name, amount, accountId });
+                        msg = `${currentMonth}월 내역에 '${name}' 추가 완료`;
+                    }
                 }
                 closeAddModal();
                 commit(msg);
