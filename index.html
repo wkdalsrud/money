@@ -897,14 +897,14 @@
                 const m = $(id), panel = m && panelOf(m);
                 if (!m || m.classList.contains('hidden') || !vv) return;
                 const keyboardLikely = vv.height < window.innerHeight - 80;   // 키보드 등으로 보이는 영역이 줄었을 때만 조정
-                m.style.top = keyboardLikely ? `${vv.offsetTop}px` : '';
-                m.style.height = keyboardLikely ? `${vv.height}px` : '';
-                m.style.bottom = keyboardLikely ? 'auto' : '';
+                // 어두운 배경(팝업 바깥)은 항상 화면 전체를 덮고, 안쪽 여백으로 팝업 상자만 키보드 위 영역에 맞춤 → 배경 반짝임 없음
+                m.style.paddingTop = keyboardLikely ? `${Math.max(12, vv.offsetTop + 12)}px` : '';
+                m.style.paddingBottom = keyboardLikely ? `${Math.max(12, window.innerHeight - vv.offsetTop - vv.height + 12)}px` : '';
                 if (panel) panel.style.maxHeight = keyboardLikely ? `${Math.max(200, vv.height - 24)}px` : '';
             });
         }
         function resetModalFit(m) {
-            m.style.top = m.style.height = m.style.bottom = '';
+            m.style.paddingTop = m.style.paddingBottom = '';
             const panel = panelOf(m);
             if (panel) panel.style.maxHeight = '';
         }
