@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>2026 Money</title>
+    <title>2026 Money - 귀여운 파스텔 연간 예산 기록</title>
     
     <!-- Google Fonts: Jua (귀여운 포인트 타이틀) & Noto Sans KR (깔끔한 본문/숫자) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -117,7 +117,7 @@
                 <i data-ic="sparkle" class="text-2xl text-pastel-yellowDark"></i>
             </div>
             <p class="text-[13px] sm:text-sm text-pastel-subtext mt-2.5 font-medium">
-                정신차리고 돈 모으자
+                차곡차곡 모으는 나만의 2026년 파스텔 가계부
             </p>
             <p id="sync-status" role="status" class="text-[13px] mt-1.5 font-medium text-pastel-subtext"></p>
             <!-- 우측 상단 보조 버튼: 내 통장 관리 & 초기화 -->
@@ -146,9 +146,6 @@
                 <div class="bg-gradient-to-br from-pastel-blue/40 to-pastel-blue/15 rounded-2xl px-4 sm:px-5 pt-3 pb-4 border border-pastel-blue/60 flex flex-col justify-start gap-0.5">
                     <div class="flex items-center justify-between mb-0">
                         <span class="text-[13px] sm:text-sm font-bold text-blue-800/80">연간 수입</span>
-                        <span class="w-7 h-7 rounded-full bg-white/80 flex items-center justify-center text-blue-500 shadow-sm">
-                            <i data-ic="dollar" class="text-lg"></i>
-                        </span>
                     </div>
                     <p id="annual-income-total" class="text-[clamp(1.05rem,5.2vw,1.6rem)] leading-tight font-black text-blue-900 tracking-tight tabular-nums whitespace-nowrap overflow-hidden">0원</p>
                 </div>
@@ -157,9 +154,6 @@
                 <div class="bg-gradient-to-br from-pastel-mint/50 to-pastel-mint/20 rounded-2xl px-4 sm:px-5 pt-3 pb-4 border border-pastel-mintDark/30 flex flex-col justify-start gap-0.5">
                     <div class="flex items-center justify-between mb-0">
                         <span class="text-[13px] sm:text-sm font-bold text-emerald-800/80">연간 저축</span>
-                        <span class="w-7 h-7 rounded-full bg-white/80 flex items-center justify-center text-emerald-500 shadow-sm">
-                            <i data-ic="piggy" class="text-lg"></i>
-                        </span>
                     </div>
                     <p id="annual-saving-total" class="text-[clamp(1.05rem,5.2vw,1.6rem)] leading-tight font-black text-emerald-900 tracking-tight tabular-nums whitespace-nowrap overflow-hidden">0원</p>
                 </div>
@@ -202,11 +196,8 @@
 
             <!-- 🏦 통장별 입출금 요약 박스 -->
             <div class="bg-white/85 backdrop-blur-sm rounded-2xl p-4 sm:p-5 mb-5 border border-pastel-purple/50 shadow-card">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="font-cute text-base sm:text-lg text-pastel-text flex items-center gap-1.5">
-                        <i data-ic="wallet" class="text-pastel-purpleDark text-xl"></i>
-                        <span id="account-summary-month">1월</span> 통장별 현황
-                    </span>
+                <div id="account-summary-header" class="flex items-center justify-between">
+                    <button type="button" id="toggle-account-summary-btn" aria-expanded="false" aria-controls="account-summary-list" class="font-cute text-base sm:text-lg text-pastel-text flex items-center gap-1.5 text-left"><i data-ic="wallet" class="text-pastel-purpleDark text-xl"></i><span><span id="account-summary-month">1월</span> 통장별 현황</span><span id="account-summary-chevron" class="inline-flex text-pastel-subtext transition-transform"><i data-ic="chevron-down"></i></span></button>
                     <button type="button" id="quick-manage-account-btn" class="text-[13px] sm:text-sm text-pastel-purpleDark hover:underline font-semibold">
                         + 통장 편집
                     </button>
@@ -240,22 +231,23 @@
                 <div>
                     <label for="item-name" class="block text-[13px] font-bold text-pastel-subtext mb-1">항목 이름</label>
                     <input type="text" id="item-name" data-autofocus required maxlength="20" placeholder="예: 월급, 통신비, 청년적금"
-                        class="w-full px-3.5 py-2.5 rounded-2xl bg-pastel-bg border border-pastel-pink/60 focus:outline-none focus:border-pastel-pinkDark focus:ring-2 focus:ring-pastel-pink/40 text-base">
+                        class="w-full px-3.5 py-2.5 rounded-2xl bg-pastel-bg border border-pastel-pink/60 focus:outline-none focus:border-pastel-pinkDark focus:ring-2 focus:ring-pastel-pink/40 text-sm">
                 </div>
 
                 <div>
                     <label for="item-account" class="block text-[13px] font-bold text-pastel-subtext mb-1"><span id="item-account-label">연결 통장</span></label>
                     <select id="item-account"
-                        class="w-full px-3.5 py-2.5 rounded-2xl bg-pastel-bg border border-pastel-pink/60 focus:outline-none focus:border-pastel-pinkDark focus:ring-2 focus:ring-pastel-pink/40 text-base text-pastel-text">
+                        class="w-full px-3.5 py-2.5 rounded-2xl bg-pastel-bg border border-pastel-pink/60 focus:outline-none focus:border-pastel-pinkDark focus:ring-2 focus:ring-pastel-pink/40 text-sm text-pastel-text">
                         <!-- JS로 통장 목록 렌더링 -->
                     </select>
+                    <p id="account-hint" class="hidden text-[13px] text-pastel-subtext mt-1 leading-snug">통장을 바꾸면 이 달과 이후 모든 달의 같은 항목에 적용돼요</p>
                 </div>
 
                 <div>
                     <label for="item-amount" class="block text-[13px] font-bold text-pastel-subtext mb-1">금액 (원)</label>
                     <div class="relative">
                         <input type="text" id="item-amount" inputmode="numeric" maxlength="15" required placeholder="0"
-                            class="w-full px-3.5 py-2.5 pr-9 rounded-2xl bg-pastel-bg border border-pastel-pink/60 focus:outline-none focus:border-pastel-pinkDark focus:ring-2 focus:ring-pastel-pink/40 text-base font-bold text-right">
+                            class="w-full px-3.5 py-2.5 pr-9 rounded-2xl bg-pastel-bg border border-pastel-pink/60 focus:outline-none focus:border-pastel-pinkDark focus:ring-2 focus:ring-pastel-pink/40 text-sm font-bold text-right">
                         <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-[13px] font-bold text-pastel-subtext">원</span>
                     </div>
                 </div>
@@ -314,8 +306,8 @@
             <div class="mt-4 pt-3 border-t border-pastel-purple/30">
                 <p class="text-[13px] font-bold text-pastel-subtext mb-2">데이터 관리 (바로 적용돼요)</p>
                 <div class="flex flex-wrap gap-2">
-                    <button type="button" id="export-data-btn" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-pastel-bg border border-pastel-purple text-[13px] font-semibold text-pastel-text hover:bg-pastel-purple/30 transition-bounce"><i data-ic="download" class=""></i> 백업 내보내기</button>
-                    <button type="button" id="import-data-btn" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-pastel-bg border border-pastel-purple text-[13px] font-semibold text-pastel-text hover:bg-pastel-purple/30 transition-bounce"><i data-ic="upload" class=""></i> 백업 불러오기</button>
+                    <button type="button" id="export-data-btn" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-pastel-bg border border-pastel-purple text-[13px] font-semibold text-pastel-text hover:bg-pastel-purple/30 transition-bounce"><i data-ic="upload" class=""></i> 백업 내보내기</button>
+                    <button type="button" id="import-data-btn" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-pastel-bg border border-pastel-purple text-[13px] font-semibold text-pastel-text hover:bg-pastel-purple/30 transition-bounce"><i data-ic="download" class=""></i> 백업 불러오기</button>
                     <button type="button" id="reset-demo-btn" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-white border border-rose-300 text-[13px] font-semibold text-rose-700 hover:bg-rose-50 transition-bounce"><i data-ic="rotate" class=""></i> 전체 초기화</button>
                 </div>
                 <input type="file" id="import-file-input" accept="application/json,.json" class="hidden">
@@ -342,11 +334,12 @@
             <p id="delete-modal-desc" class="text-[13px] sm:text-sm text-pastel-subtext mb-5 leading-relaxed">
                 선택한 항목이 삭제됩니다.
             </p>
-            <div class="flex gap-2.5">
+            <div id="confirm-btn-row" class="flex gap-2.5">
                 <button type="button" id="cancel-delete-btn" class="flex-1 py-2.5 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-sm transition-bounce">
                     취소
                 </button>
-                <button type="button" id="confirm-delete-btn" class="flex-1 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-md transition-bounce">
+                <button type="button" id="confirm-alt-btn" class="hidden order-2 py-2.5 rounded-2xl bg-rose-800 hover:bg-rose-900 text-white font-bold text-sm shadow-md transition-bounce"></button>
+                    <button type="button" id="confirm-delete-btn" class="flex-1 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-md transition-bounce">
                     삭제하기
                 </button>
             </div>
@@ -366,6 +359,7 @@
         const ICONS = {
             'user': '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
             'cloud': '<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>',
+            'chevron-down': '<path d="M6 9l6 6 6-6"/>',
             'chevron-left': '<path d="M15 18l-6-6 6-6"/>',
             'chevron-right': '<path d="M9 18l6-6-6-6"/>',
             'x': '<path d="M18 6L6 18M6 6l12 12"/>',
@@ -552,7 +546,8 @@
         let currentMonth = now.getFullYear() === 2026 ? now.getMonth() + 1 : 1;   // 오늘이 속한 달로 시작
         let activeModalCategoryId = null;
         let editingItemId = null;
-        let confirmAction = null;
+        let confirmAction = null, confirmAltAction = null;
+        let accountSummaryOpen = false;      // 통장별 현황: 기본은 접힘
         let tempAccountsList = [];
         const initial = loadState();
         let accountsList = initial.accounts;
@@ -781,16 +776,26 @@
         }
 
         // ---------- 확인 모달 (삭제 / 초기화 / 백업 불러오기 공용) ----------
-        function openConfirm({ title, desc, okText, onOk }) {
+        function openConfirm({ title, desc, okText, onOk, altText, onAlt }) {
             $('confirm-title').textContent = title;
             $('delete-modal-desc').innerHTML = desc;
             $('confirm-delete-btn').textContent = okText;
             confirmAction = onOk;
+            confirmAltAction = onAlt || null;
+            const hasAlt = !!altText;
+            const alt = $('confirm-alt-btn');
+            alt.textContent = altText || '';
+            alt.classList.toggle('hidden', !hasAlt);
+            $('confirm-btn-row').className = hasAlt ? 'grid grid-cols-2 gap-2.5' : 'flex gap-2.5';
+            $('cancel-delete-btn').classList.toggle('col-span-2', hasAlt);
+            $('cancel-delete-btn').classList.toggle('order-3', hasAlt);
+            $('confirm-delete-btn').classList.toggle('order-1', hasAlt);
             showModal('delete-confirm-modal');
         }
         function closeConfirm() {
             hideModal('delete-confirm-modal');
             confirmAction = null;
+            confirmAltAction = null;
         }
 
         // ---------- 항목 추가/수정 모달 ----------
@@ -813,6 +818,7 @@
             $('modal-delete-btn').classList.toggle('hidden', !isEdit);
             $('item-account-label').textContent = cat.accountLabel;
             $('add-scope-field').classList.toggle('hidden', isEdit);
+            $('account-hint').classList.toggle('hidden', !isEdit);
             $('scope-month-label').textContent = `${currentMonth}월에만`;
             const r = document.querySelector('input[name="add-scope"][value="month"]');
             if (r) r.checked = true;
@@ -856,14 +862,22 @@
             closeAddModal();
             openConfirm({
                 title: '정말 삭제할까요?',
-                desc: `<strong class="text-pastel-text">'${escapeHtml(name)}'</strong> (${formatCurrency(item.amount)}) 항목을<br>정말 삭제하시겠습니까?`,
-                okText: '삭제하기',
+                desc: `<strong class="text-pastel-text">'${escapeHtml(name)}'</strong> 항목을<br>이 달만 삭제할지, 모든 월(1~12월)에서 삭제할지 골라 주세요.<br><span class="text-[13px]">모든 월 삭제는 같은 이름의 항목을 전부 지워요.</span>`,
+                okText: '이 달만 삭제',
+                altText: '모든 월에서 삭제',
                 onOk: () => {
                     const list = budgetData[month][catId];
                     const idx = list.findIndex(i => i.id === itemId);
                     if (idx === -1) return;
                     list.splice(idx, 1);
-                    commit(`'${name}' 삭제되었어요`);
+                    commit(`${month}월 '${name}' 삭제되었어요`);
+                },
+                onAlt: () => {
+                    for (let m = 1; m <= 12; m++) {
+                        const l = budgetData[m][catId];
+                        for (let i = l.length - 1; i >= 0; i--) if (l[i].name === name) l.splice(i, 1);
+                    }
+                    commit(`'${name}' 항목을 모든 월에서 삭제했어요`);
                 }
             });
         }
@@ -1242,6 +1256,16 @@
             });
             initCloud();
 
+            // 통장별 현황 접기/펼치기
+            const applyAccountSummaryState = () => {
+                $('account-summary-list').classList.toggle('hidden', !accountSummaryOpen);
+                $('account-summary-header').classList.toggle('mb-3', accountSummaryOpen);
+                $('toggle-account-summary-btn').setAttribute('aria-expanded', String(accountSummaryOpen));
+                $('account-summary-chevron').classList.toggle('rotate-180', accountSummaryOpen);
+            };
+            applyAccountSummaryState();
+            $('toggle-account-summary-btn').addEventListener('click', () => { accountSummaryOpen = !accountSummaryOpen; applyAccountSummaryState(); });
+
             $('prev-month-btn').addEventListener('click', () => selectMonth(currentMonth - 1));
             $('next-month-btn').addEventListener('click', () => selectMonth(currentMonth + 1));
 
@@ -1292,6 +1316,11 @@
                 closeConfirm();
                 if (fn) fn();
             });
+            $('confirm-alt-btn').addEventListener('click', () => {
+                const fn = confirmAltAction;
+                closeConfirm();
+                if (fn) fn();
+            });
             $('delete-confirm-modal').addEventListener('click', e => { if (e.target.id === 'delete-confirm-modal') closeConfirm(); });
 
             // 금액 입력: 숫자만 + 천단위 콤마 + 상한
@@ -1314,8 +1343,19 @@
                 let msg;
                 if (editingItemId) {
                     const t = list.find(i => i.id === editingItemId);
-                    if (t) { t.name = name; t.amount = amount; t.accountId = accountId; }
-                    msg = `'${name}' 수정되었어요`;
+                    let carried = false;
+                    if (t) {
+                        const oldName = t.name, accountChanged = t.accountId !== accountId;
+                        t.name = name; t.amount = amount; t.accountId = accountId;
+                        if (accountChanged) {      // 통장 변경은 이 달 + 이후 모든 달의 같은 항목에 적용
+                            for (let m = currentMonth + 1; m <= 12; m++) {
+                                (budgetData[m][activeModalCategoryId] || []).forEach(it => {
+                                    if (it.name === oldName) { it.accountId = accountId; carried = true; }
+                                });
+                            }
+                        }
+                    }
+                    msg = `'${name}' 수정되었어요` + (carried ? ` (통장 연결은 ${currentMonth}월 이후 모든 달에 적용)` : '');
                 } else {
                     const scope = (document.querySelector('input[name="add-scope"]:checked') || {}).value;
                     if (scope === 'all') {
