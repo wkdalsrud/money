@@ -97,8 +97,10 @@
             <p class="text-[13px] sm:text-sm text-pastel-subtext mt-2.5 font-medium">
                 차곡차곡 모으는 나만의 2026년 파스텔 가계부
             </p>
+            <p id="sync-status" role="status" class="text-[13px] mt-1.5 font-medium text-pastel-subtext"></p>
             <!-- 우측 상단 보조 버튼: 내 통장 관리 & 초기화 -->
             <div class="mt-3 sm:mt-0 sm:absolute sm:right-0 sm:top-1/2 sm:-translate-y-1/2 flex justify-center items-center gap-2">
+                <button id="auth-btn" type="button" class="text-[13px] bg-white/90 hover:bg-pastel-pink/30 text-pastel-text font-medium px-3 py-1.5 rounded-full border border-pastel-pink shadow-sm transition-bounce inline-flex items-center gap-1 max-w-[12rem]"></button>
                 <button id="open-account-manager-btn" type="button" class="text-[13px] bg-white/90 hover:bg-pastel-purple/30 text-pastel-text font-medium px-3 py-1.5 rounded-full border border-pastel-purple shadow-sm transition-bounce inline-flex items-center gap-1">
                     <i data-ic="bank" class="text-pastel-purpleDark"></i> 내 통장 관리
                 </button>
@@ -326,6 +328,8 @@
 
         // ---------- 아이콘 (인라인 SVG: 외부 아이콘 라이브러리가 필요 없어요) ----------
         const ICONS = {
+            'user': '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+            'cloud': '<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>',
             'chevron-left': '<path d="M15 18l-6-6 6-6"/>',
             'chevron-right': '<path d="M9 18l6-6-6-6"/>',
             'x': '<path d="M18 6L6 18M6 6l12 12"/>',
@@ -385,8 +389,21 @@
               badgeClass: 'bg-pastel-mint text-emerald-900', btnClass: 'bg-emerald-700 hover:bg-emerald-800 text-white' }
         ];
 
+        // ================== Firebase 설정 ==================
+        // 이 값은 공개되어도 안전해요. 데이터 보호는 Firestore 보안 규칙이 담당해요.
+        const FIREBASE_CONFIG = {
+            apiKey: 'AIzaSyBSnwFlSLGZnywo1MG7y37C6lteawas85Q',
+            authDomain: 'canada-app-f17c5.firebaseapp.com',
+            projectId: 'canada-app-f17c5',
+            storageBucket: 'canada-app-f17c5.firebasestorage.app',
+            messagingSenderId: '700174259173',
+            appId: '1:700174259173:web:b22cf21bc93a42a763950c'
+        };
+        const FB_VERSION = '10.14.1';
+
         const STORAGE_KEY = '2026_money_budget_data_v3';
         const ACCOUNTS_STORAGE_KEY = '2026_money_accounts_v3';
+        const META_KEY = '2026_money_meta_v3';                       // 마지막 수정 시각 / 로그인 사용자
         const OLD_STORAGE_KEY = '2026_money_budget_data_v2';       // 예전 버전 (자동 이전용)
         const OLD_ACCOUNTS_KEY = '2026_money_accounts_v2';
         const MAX_AMOUNT = 9999999999;                              // 99억 9,999만원대 상한
@@ -484,12 +501,14 @@
         function loadState() {
             let accounts = normalizeAccounts(readJSON(ACCOUNTS_STORAGE_KEY));
             let rawData = readJSON(STORAGE_KEY);
+            let migrated = false;
             if (!accounts && !rawData) {   // v3가 없으면 v2 데이터를 이어받기
                 accounts = normalizeAccounts(readJSON(OLD_ACCOUNTS_KEY));
                 rawData = readJSON(OLD_STORAGE_KEY);
+                migrated = !!(accounts || rawData);
             }
             if (!accounts) accounts = defaultAccounts();
-            return { accounts, data: normalizeData(rawData, accounts) };
+            return { accounts, data: normalizeData(rawData, accounts), migrated };
         }
 
         // ---------- 상태 ----------
@@ -503,12 +522,31 @@
         let accountsList = initial.accounts;
         let budgetData = initial.data;
 
-        function persistAll() {
+        // 로컬 저장은 "캐시/오프라인용", 기준 데이터는 로그인 시 Firestore
+        const meta0 = readJSON(META_KEY) || {};
+        let localUpdatedAt = Number(meta0.updatedAt) || (initial.migrated ? Date.now() : 0);
+        let localUid = meta0.uid || '';
+        let cloud = null, syncTimer = null, pendingSave = false, snapCount = 0;
+        const deviceId = (() => {
+            try {
+                let id = localStorage.getItem('2026_money_device_id');
+                if (!id) { id = uid('dev'); localStorage.setItem('2026_money_device_id', id); }
+                return id;
+            } catch (e) { return uid('dev'); }
+        })();
+        const saveMeta = () => safeSet(META_KEY, { updatedAt: localUpdatedAt, uid: localUid });
+        function markChanged() {            // 사용자가 바꾼 경우에만 호출
+            localUpdatedAt = Date.now();
+            saveMeta();
+            scheduleCloudSave();
+        }
+        function persistAll(changed = true) {
             const a = safeSet(ACCOUNTS_STORAGE_KEY, accountsList);
             const d = safeSet(STORAGE_KEY, budgetData);
+            if (changed) markChanged(); else saveMeta();
             return a && d;
         }
-        const saveData = () => safeSet(STORAGE_KEY, budgetData);
+        const saveData = () => { const ok = safeSet(STORAGE_KEY, budgetData); markChanged(); return ok; };
         const accountName = id => (accountsList.find(a => a.id === id) || {}).name || '';
         const findItem = (m, catId, itemId) => ((budgetData[m] || {})[catId] || []).find(i => i.id === itemId);
 
@@ -881,7 +919,7 @@
                 closeAccountManagerModal();
                 openConfirm({
                     title: '백업을 불러올까요?',
-                    desc: '지금 입력된 내역과 통장 목록이<br>백업 파일 내용으로 바뀌어요.',
+                    desc: '지금 입력된 내역과 통장 목록이<br>백업 파일 내용으로 바뀌어요.<br>로그인 중이면 클라우드에도 반영돼요.',
                     okText: '불러오기',
                     onOk: () => {
                         accountsList = accounts;
@@ -899,7 +937,7 @@
             closeAccountManagerModal();
             openConfirm({
                 title: '전체 초기화할까요?',
-                desc: '모든 월의 입력 내역과 통장 목록이 지워지고<br>기본 상태로 돌아가요. 되돌릴 수 없어요.',
+                desc: '모든 월의 입력 내역과 통장 목록이 지워지고<br>기본 상태로 돌아가요. 되돌릴 수 없어요.<br>로그인 중이면 클라우드 데이터도 함께 초기화돼요.',
                 okText: '초기화',
                 onOk: () => {
                     [STORAGE_KEY, ACCOUNTS_STORAGE_KEY, OLD_STORAGE_KEY, OLD_ACCOUNTS_KEY].forEach(k => {
@@ -931,14 +969,189 @@
             }, isError ? 4200 : 2200);
         }
 
+        // ---------- 클라우드 동기화 (Firestore) ----------
+        // 저장 위치: users/{uid}/apps/money2026 (문서 1개). 가장 최근에 수정한 쪽이 이겨요.
+        const SYNC_TEXT = {
+            unconfigured: ['클라우드 동기화 미설정 · 이 기기에만 저장돼요', 'text-pastel-subtext'],
+            signedout: ['로그인하면 기기 간 동기화돼요 · 지금은 이 기기에만 저장', 'text-pastel-subtext'],
+            'offline-mode': ['클라우드에 연결하지 못했어요 · 이 기기에만 저장돼요', 'text-amber-800'],
+            connecting: ['클라우드 연결 중…', 'text-pastel-subtext'],
+            saving: ['저장 중…', 'text-pastel-subtext'],
+            synced: ['클라우드와 동기화됨', 'text-emerald-700'],
+            offline: ['오프라인 · 연결되면 자동으로 동기화돼요', 'text-amber-800'],
+            error: ['동기화 오류', 'text-rose-700']
+        };
+        function setSyncStatus(key, detail) {
+            const el = $('sync-status');
+            if (!el) return;
+            const [text, color] = SYNC_TEXT[key] || SYNC_TEXT.error;
+            let extra = '';
+            if (key === 'error') {
+                extra = detail === 'permission-denied' ? ' (Firestore 보안 규칙을 확인해 주세요)' : (detail ? ` (${detail})` : '');
+            }
+            el.className = `text-[13px] mt-1.5 font-medium ${color}`;
+            el.textContent = text + extra;
+        }
+        function renderAuthButton() {
+            const b = $('auth-btn');
+            if (!b) return;
+            const u = cloud && cloud.user;
+            b.innerHTML = u
+                ? `${ic('cloud', 'text-emerald-700')}<span class="truncate max-w-[7.5rem]">${escapeHtml(u.displayName || u.email || '로그인됨')}</span>`
+                : `${ic('user', 'text-pastel-pinkDark')} 구글 로그인`;
+        }
+        function backupLocal() {            // 덮어쓰기 전, 이 기기의 데이터를 한 번 보관
+            if (localUpdatedAt > 0) safeSet('2026_money_prev_local_v3', { savedAt: Date.now(), accounts: accountsList, data: budgetData });
+        }
+        function scheduleCloudSave() {
+            if (!cloud || !cloud.user || !cloud.ref) return;
+            pendingSave = true;
+            setSyncStatus('saving');
+            clearTimeout(syncTimer);
+            syncTimer = setTimeout(pushToCloud, 700);
+        }
+        function pushToCloud() {
+            clearTimeout(syncTimer);
+            pendingSave = false;
+            if (!cloud || !cloud.user || !cloud.ref) return;
+            const payload = {
+                schema: 3, updatedAt: localUpdatedAt, deviceId,
+                accountsJson: JSON.stringify(accountsList), dataJson: JSON.stringify(budgetData)
+            };
+            // 오프라인이면 응답이 늦어지므로 await 하지 않음 (Firestore가 대기열에 두었다가 자동 전송)
+            cloud.fsM.setDoc(cloud.ref, payload).catch(err => { console.warn(err); setSyncStatus('error', err.code); });
+        }
+        function applyRemote(d, announce) {
+            let accounts, data;
+            try {
+                accounts = normalizeAccounts(JSON.parse(d.accountsJson)) || defaultAccounts();
+                data = normalizeData(JSON.parse(d.dataJson), accounts);
+            } catch (e) { console.warn('클라우드 데이터 해석 실패', e); setSyncStatus('error', 'invalid-data'); return; }
+            if (JSON.stringify(budgetData) !== JSON.stringify(data)) backupLocal();
+            accountsList = accounts;
+            budgetData = data;
+            localUpdatedAt = Number(d.updatedAt) || 0;
+            safeSet(ACCOUNTS_STORAGE_KEY, accountsList);
+            safeSet(STORAGE_KEY, budgetData);
+            saveMeta();
+            updateAnnualDashboard();
+            renderMonthCategories();
+            if (announce) showToast('다른 기기에서 바꾼 내용을 반영했어요');
+        }
+        function onCloudSnapshot(snap) {
+            const md = snap.metadata;
+            snapCount++;
+            if (md.hasPendingWrites) { setSyncStatus('saving'); return; }   // 내 변경이 서버에 올라가는 중
+            const online = navigator.onLine;
+            if (!snap.exists()) {
+                if (md.fromCache) { setSyncStatus(online ? 'connecting' : 'offline'); return; }
+                pushToCloud();               // 클라우드가 비어 있으면 이 기기 데이터를 올림
+                return;
+            }
+            const d = snap.data();
+            const remoteAt = Number(d.updatedAt) || 0;
+            if (remoteAt > localUpdatedAt) {
+                applyRemote(d, snapCount > 1 && d.deviceId !== deviceId);
+            } else if (remoteAt < localUpdatedAt && !md.fromCache) {
+                pushToCloud();               // 이 기기가 더 최신(오프라인 중 수정 등) → 올림
+                return;
+            }
+            if (md.fromCache) setSyncStatus(online ? 'connecting' : 'offline');
+            else setSyncStatus('synced');
+        }
+        function handleAuth(user) {
+            if (cloud.unsub) { cloud.unsub(); cloud.unsub = null; }
+            cloud.user = user || null;
+            cloud.ref = null;
+            snapCount = 0;
+            renderAuthButton();
+            if (!user) { setSyncStatus('signedout'); return; }
+            if (localUid && localUid !== user.uid) {   // 다른 계정으로 로그인 → 이전 계정 데이터가 섞이지 않게 초기화
+                backupLocal();
+                accountsList = defaultAccounts();
+                budgetData = emptyData();
+                localUpdatedAt = 0;
+                persistAll(false);
+                updateAnnualDashboard();
+                renderMonthCategories();
+            }
+            localUid = user.uid;
+            saveMeta();
+            setSyncStatus('connecting');
+            cloud.ref = cloud.fsM.doc(cloud.db, 'users', user.uid, 'apps', 'money2026');
+            cloud.unsub = cloud.fsM.onSnapshot(cloud.ref, { includeMetadataChanges: true }, onCloudSnapshot,
+                err => { console.warn(err); setSyncStatus('error', err.code); });
+        }
+        async function initCloud() {
+            if (!FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey.startsWith('여기에')) { setSyncStatus('unconfigured'); return; }
+            setSyncStatus('connecting');
+            try {
+                const base = `https://www.gstatic.com/firebasejs/${FB_VERSION}/`;
+                const [appM, authM, fsM] = await Promise.all([
+                    import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')
+                ]);
+                const app = appM.initializeApp(FIREBASE_CONFIG);
+                const auth = authM.getAuth(app);
+                let db;
+                try {   // 오프라인에서도 쓰고, 연결되면 자동 동기화되도록 로컬 캐시 사용
+                    db = fsM.initializeFirestore(app, { localCache: fsM.persistentLocalCache({ tabManager: fsM.persistentMultipleTabManager() }) });
+                } catch (e) { db = fsM.getFirestore(app); }
+                cloud = { appM, authM, fsM, auth, db, user: null, ref: null, unsub: null };
+                authM.getRedirectResult(auth).catch(err => console.warn(err));
+                authM.onAuthStateChanged(auth, handleAuth);
+            } catch (e) {
+                console.warn('Firebase 로드 실패', e);
+                setSyncStatus('offline-mode');
+            }
+        }
+        async function signInGoogle() {
+            const { authM, auth } = cloud;
+            const provider = new authM.GoogleAuthProvider();
+            try {
+                await authM.signInWithPopup(auth, provider);
+            } catch (e) {
+                if (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment') {
+                    authM.signInWithRedirect(auth, provider);
+                } else if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
+                    showToast(`로그인에 실패했어요 (${e.code || '오류'})`, true);
+                }
+            }
+        }
+        function onAuthButtonClick() {
+            if (!cloud) {
+                showToast(FIREBASE_CONFIG.apiKey.startsWith('여기에') ? 'index.html의 FIREBASE_CONFIG를 먼저 채워 주세요' : '클라우드에 연결 중이에요. 잠시 후 다시 눌러 주세요', true);
+                return;
+            }
+            if (cloud.user) {
+                openConfirm({
+                    title: '로그아웃할까요?',
+                    desc: '로그아웃해도 이 기기의 데이터는 그대로 남아 있어요.<br>다시 로그인하면 동기화가 이어져요.',
+                    okText: '로그아웃',
+                    onOk: () => cloud.authM.signOut(cloud.auth)
+                });
+            } else {
+                signInGoogle();
+            }
+        }
+
         // ---------- 이벤트 바인딩 ----------
         document.addEventListener('DOMContentLoaded', () => {
             hydrateIcons();
-            if (!persistAll()) showToast('이 브라우저에서는 저장이 안 될 수 있어요. 백업 내보내기를 활용해 주세요', true);
+            if (!persistAll(false)) showToast('이 브라우저에서는 저장이 안 될 수 있어요. 백업 내보내기를 활용해 주세요', true);
             updateAnnualDashboard();
             renderMonthSlider();
             renderMonthCategories();
             scrollActiveMonth(false);
+
+            // 클라우드 동기화
+            renderAuthButton();
+            $('auth-btn').addEventListener('click', onAuthButtonClick);
+            window.addEventListener('online', () => { if (cloud && cloud.user) setSyncStatus('connecting'); });
+            window.addEventListener('offline', () => { if (cloud && cloud.user) setSyncStatus('offline'); });
+            document.addEventListener('visibilitychange', () => {       // 탭을 닫기 전에 대기 중인 저장을 바로 전송
+                if (document.visibilityState === 'hidden' && pendingSave) pushToCloud();
+            });
+            initCloud();
 
             $('prev-month-btn').addEventListener('click', () => selectMonth(currentMonth - 1));
             $('next-month-btn').addEventListener('click', () => selectMonth(currentMonth + 1));
