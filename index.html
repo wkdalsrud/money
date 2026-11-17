@@ -83,6 +83,9 @@
         html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
         .cute-chip { transition: transform .2s cubic-bezier(0.34,1.56,0.64,1); }
         .cute-chip:hover { transform: translateY(-2px) rotate(-1deg); }
+        html { scrollbar-gutter: stable; }
+        html.scroll-locked, html.scroll-locked body { overflow: hidden; }
+        #item-amount.is-auto { background: #F6F0FA; color: #6B6278; cursor: default; }
     </style>
 </head>
 <body class="text-pastel-text font-sans min-h-screen pb-16 selection:bg-pastel-pink selection:text-pastel-text overflow-x-hidden">
@@ -229,7 +232,7 @@
     </div>
 
     <!-- 소분류 항목 추가/수정 모달 -->
-    <div id="add-item-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/35 backdrop-blur-sm overflow-y-auto overscroll-contain p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+    <div id="add-item-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 overflow-y-auto overscroll-contain p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
         <div role="dialog" aria-modal="true" aria-labelledby="modal-title" class="bg-white rounded-3xl w-full max-w-[340px] sm:max-w-md p-5 sm:p-6 shadow-2xl border-2 border-pastel-pink my-auto max-h-[calc(100dvh-2.5rem)] overflow-y-auto overscroll-contain">
             <div class="flex items-center justify-between mb-3.5">
                 <div class="flex items-center gap-2">
@@ -258,12 +261,24 @@
                 </div>
 
                 <div>
-                    <label for="item-amount" class="block text-[13px] font-bold text-pastel-subtext mb-1">금액 (원)</label>
+                    <label for="item-amount" id="item-amount-label" class="block text-[13px] font-bold text-pastel-subtext mb-1">금액 (원)</label>
                     <div class="relative">
                         <input type="text" id="item-amount" inputmode="numeric" maxlength="15" required placeholder="0"
                             class="w-full px-3.5 py-2.5 pr-9 rounded-2xl bg-pastel-bg border border-pastel-pink/60 focus:outline-none focus:border-pastel-pinkDark focus:ring-2 focus:ring-pastel-pink/40 text-sm font-bold text-right">
                         <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-[13px] font-bold text-pastel-subtext">원</span>
                     </div>
+                </div>
+
+                <div id="detail-section" class="hidden rounded-2xl border-2 border-dashed border-pastel-pink/70 bg-pastel-bg/70 p-3">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[13px] font-bold text-pastel-subtext">세부 항목 <span id="detail-count" class="text-rose-700"></span></span>
+                        <button type="button" id="detail-add-btn" class="inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-[13px] font-bold bg-pastel-pink hover:bg-[#FFC4D3] text-rose-900 border border-pastel-pinkDark/50 disabled:opacity-40 transition-bounce"><i data-ic="plus"></i> 추가</button>
+                    </div>
+                    <div id="detail-list" class="space-y-1.5"></div>
+                    <label id="detail-forward-wrap" class="hidden mt-2.5 flex items-start gap-2 text-[13px] text-pastel-subtext cursor-pointer">
+                        <input type="checkbox" id="detail-forward" class="mt-0.5 w-4 h-4 accent-[#FF8FA3] shrink-0">
+                        <span id="detail-forward-label"></span>
+                    </label>
                 </div>
 
                 <fieldset id="add-scope-field" class="hidden">
@@ -293,7 +308,7 @@
     </div>
 
     <!-- 내 통장 관리 모달 -->
-    <div id="account-manager-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/35 backdrop-blur-sm overflow-y-auto overscroll-contain p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+    <div id="account-manager-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 overflow-y-auto overscroll-contain p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
         <div role="dialog" aria-modal="true" aria-labelledby="account-modal-title" class="bg-white rounded-3xl w-full max-w-[350px] sm:max-w-md p-5 sm:p-6 shadow-2xl border-2 border-pastel-purple my-auto max-h-[calc(100dvh-2.5rem)] overflow-y-auto overscroll-contain">
             <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2">
@@ -339,7 +354,7 @@
     </div>
 
     <!-- 삭제 확인 모달 -->
-    <div id="delete-confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/35 backdrop-blur-sm overflow-y-auto overscroll-contain p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+    <div id="delete-confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 overflow-y-auto overscroll-contain p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
         <div role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" class="bg-white rounded-3xl w-full max-w-[330px] p-5 sm:p-6 shadow-2xl border-2 border-pastel-pink text-center my-auto max-h-[calc(100dvh-2.5rem)] overflow-y-auto overscroll-contain">
             <div class="w-12 h-12 rounded-full bg-pastel-pink/40 text-pastel-pinkDark flex items-center justify-center mx-auto mb-3 text-2xl">
                 <i data-ic="alert" class=""></i>
@@ -460,10 +475,15 @@
             income: ['급여', '성과', '상여', '기타'],
             fixed: ['통신비', '교통비', '생필품', '보험료', '모임통장', '구독료'],
             card: ['신한카드', '현대카드', '국민카드'],
-            variable: ['용돈', '숙소&KTX', '생일'],
+            variable: ['용돈', '숙소&KTX', '할부', '생일'],
             emergency: [],
             saving: ['청년주택청약', '청년적금', 'MMF', '결혼자금']
         };
+
+        // 세부 항목(여러 건 합계)으로 입력하는 항목
+        const SPLIT_DEFAULTS = { fixed: ['보험료', '모임통장', '구독료'], variable: ['할부', '생일'] };
+        const isSplitName = (catId, name) => (SPLIT_DEFAULTS[catId] || []).includes(name);
+        const MAX_DETAILS = 30;
 
         // ---------- 유틸 ----------
         const uid = p => `${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
@@ -508,42 +528,107 @@
             });
             return out;
         }
+        // 항목 구조: { id: 이 달의 항목 id, gid: 모든 달에 공통인 항목 id, name, amount, accountId }
+        // 규칙(항상 보장): 한 카테고리 안에서 "이름 ↔ gid"는 1:1, 한 달에는 같은 gid가 하나만 존재
+        function hashStr(str) {
+            let h = 5381;
+            for (let i = 0; i < str.length; i++) h = ((h * 33) ^ str.charCodeAt(i)) >>> 0;
+            return h.toString(36);
+        }
+        const legacyGid = (catId, name) => `g-${catId}-${hashStr(name)}`;   // 예전 데이터 이전용 (기기가 달라도 같은 값)
         function emptyData() {
             const data = {};
             for (let m = 1; m <= 12; m++) {
                 data[m] = {};
                 CATEGORIES.forEach(cat => {
                     data[m][cat.id] = (DEFAULT_MONTHLY_ITEMS[cat.id] || []).map((name, idx) => (
-                        { id: `preset-${m}-${cat.id}-${idx}`, name, amount: 0, accountId: '' }
+                        { id: `preset-${m}-${cat.id}-${idx}`, gid: legacyGid(cat.id, name), name, amount: 0, accountId: '',
+                          split: isSplitName(cat.id, name), details: [] }
                     ));
                 });
             }
             return data;
         }
-        // 저장 데이터가 일부 깨져 있어도 빈 구조로 보정 + 예전 형식(통장 이름 연결) 이전
+        // 저장 데이터가 일부 깨져 있어도 빈 구조로 보정 + 예전 형식(통장 이름 연결, gid 없음) 이전 + 규칙 위반 자동 정리
         function normalizeData(raw, accounts) {
             const base = emptyData();
             if (!raw || typeof raw !== 'object') return base;
-            const byName = {};
-            accounts.forEach(a => { byName[a.name] = a.id; });
+            const accByName = {}, accIds = new Set(accounts.map(a => a.id));
+            accounts.forEach(a => { accByName[a.name] = a.id; });
             for (let m = 1; m <= 12; m++) {
                 CATEGORIES.forEach(cat => {
                     const src = raw[m] && raw[m][cat.id];
                     if (!Array.isArray(src)) return;
                     base[m][cat.id] = src.filter(it => it && typeof it === 'object').map(it => {
                         let accountId = typeof it.accountId === 'string' ? it.accountId : '';
-                        if (!accountId && typeof it.account === 'string' && byName[it.account]) accountId = byName[it.account];
-                        if (accountId && !accounts.some(a => a.id === accountId)) accountId = '';
+                        if (!accountId && typeof it.account === 'string' && accByName[it.account]) accountId = accByName[it.account];
+                        if (accountId && !accIds.has(accountId)) accountId = '';
                         return {
                             id: safeId(it.id, 'item'),
-                            name: String(it.name == null ? '' : it.name).slice(0, 20),
+                            gid: typeof it.gid === 'string' && /^[\w-]{1,60}$/.test(it.gid) ? it.gid : '',
+                            name: String(it.name == null ? '' : it.name).trim().slice(0, 20) || '이름 없음',
                             amount: clampAmount(it.amount),
-                            accountId
+                            accountId,
+                            split: it.split === true,
+                            details: Array.isArray(it.details) ? it.details.filter(d => d && typeof d === 'object').slice(0, MAX_DETAILS).map((d, i) => ({
+                                id: safeId(d.id, 'd'),
+                                name: String(d.name == null ? '' : d.name).trim().slice(0, 20) || `세부 ${i + 1}`,
+                                amount: clampAmount(d.amount)
+                            })) : []
                         };
                     });
                 });
             }
+            CATEGORIES.forEach(cat => {
+                const nameToGid = {}, gidToName = {}, usedIds = new Set();
+                for (let m = 1; m <= 12; m++) {
+                    const seenGid = new Set();
+                    base[m][cat.id].forEach(it => {
+                        if (usedIds.has(it.id)) it.id = uid('item');       // 항목 id 중복 방지
+                        usedIds.add(it.id);
+                        if (seenGid.has(nameToGid[it.name])) {             // 한 달에 같은 이름 두 개 → 뒤의 것은 이름을 바꿔 분리
+                            let n = 2, base2 = it.name.slice(0, 16);
+                            while (nameToGid[`${base2} (${n})`] && seenGid.has(nameToGid[`${base2} (${n})`])) n++;
+                            it.name = `${base2} (${n})`;
+                        }
+                        let g = nameToGid[it.name];                         // 같은 이름 = 같은 항목
+                        if (!g) {
+                            g = it.gid || legacyGid(cat.id, it.name);
+                            if (gidToName[g] !== undefined && gidToName[g] !== it.name) g = legacyGid(cat.id, it.name);
+                            if (gidToName[g] !== undefined && gidToName[g] !== it.name) g = uid('g');
+                            nameToGid[it.name] = g;
+                            gidToName[g] = it.name;
+                        }
+                        it.gid = g;
+                        seenGid.add(g);
+                    });
+                }
+                // 세부 항목 사용 여부는 연결된 모든 달에서 같게, 합계 금액은 항상 세부 항목의 합
+                const splitGids = new Set();
+                for (let m = 1; m <= 12; m++) base[m][cat.id].forEach(it => {
+                    if (it.split || it.details.length || isSplitName(cat.id, it.name)) splitGids.add(it.gid);
+                });
+                for (let m = 1; m <= 12; m++) base[m][cat.id].forEach(it => {
+                    it.split = splitGids.has(it.gid);
+                    if (!it.split) it.details = [];
+                    else if (it.details.length) it.amount = clampAmount(it.details.reduce((a, d) => a + d.amount, 0));
+                });
+            });
             return base;
+        }
+        // 카테고리 안에서 이름으로 기존 항목 gid 찾기 (다른 달에 같은 이름이 있으면 그 항목과 연결)
+        function gidByName(catId, name) {
+            for (let m = 1; m <= 12; m++) {
+                const it = (budgetData[m][catId] || []).find(i => i.name === name);
+                if (it) return it.gid;
+            }
+            return '';
+        }
+        // 같은 gid를 쓰는 모든 달의 항목에 적용
+        function forEachLinked(catId, gid, fn, fromMonth = 1) {
+            for (let m = fromMonth; m <= 12; m++) {
+                (budgetData[m][catId] || []).forEach(it => { if (it.gid === gid) fn(it, m); });
+            }
         }
         function loadState() {
             let accounts = normalizeAccounts(readJSON(ACCOUNTS_STORAGE_KEY));
@@ -760,7 +845,10 @@
                                         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openEditModal('${cat.id}', '${item.id}')}"
                                         class="flex items-center justify-between gap-2 bg-white/85 hover:bg-white px-3.5 py-3 rounded-2xl shadow-sm cursor-pointer transition-colors ${zero ? 'opacity-70' : ''}">
                                         <div class="flex items-center gap-2 min-w-0 flex-1">
-                                            <span class="text-sm sm:text-base font-medium text-pastel-text truncate">${escapeHtml(item.name)}</span>
+                                            <div class="min-w-0">
+                                                <span class="block text-sm sm:text-base font-medium text-pastel-text truncate">${escapeHtml(item.name)}</span>
+                                                ${item.split && item.details.length ? `<span class="block text-xs text-pastel-subtext truncate">${escapeHtml(item.details[0].name)}${item.details.length > 1 ? ` 외 ${item.details.length - 1}건` : ''}</span>` : ''}
+                                            </div>
                                             ${accName ? `<span class="shrink-0 inline-flex items-center px-2 py-0.5 rounded-md bg-pastel-purple/30 text-purple-900 border border-pastel-purple/60 text-xs sm:text-[13px] font-semibold">${escapeHtml(accName)}</span>` : ''}
                                         </div>
                                         <div class="flex items-center gap-1 shrink-0">
@@ -781,17 +869,9 @@
         }
 
         // ---------- 모달 공통 (포커스 이동/복귀, Esc, 포커스 가두기) ----------
-        let savedScrollY = 0;
-        function lockScroll() {
-            if (document.body.style.position === 'fixed') return;
-            savedScrollY = window.scrollY;
-            Object.assign(document.body.style, { position: 'fixed', top: `-${savedScrollY}px`, left: '0', right: '0', width: '100%' });
-        }
-        function unlockScroll() {
-            if (document.body.style.position !== 'fixed') return;
-            Object.assign(document.body.style, { position: '', top: '', left: '', right: '', width: '' });
-            window.scrollTo(0, savedScrollY);
-        }
+        // 팝업이 열려 있는 동안 뒤 화면 스크롤만 잠금 (페이지 위치·폭을 건드리지 않아 흔들림 없음)
+        function lockScroll() { document.documentElement.classList.add('scroll-locked'); }
+        function unlockScroll() { document.documentElement.classList.remove('scroll-locked'); }
         function showModal(id) {
             const m = $(id);
             m._opener = document.activeElement;
@@ -855,6 +935,61 @@
                 sel.appendChild(opt);
             });
         }
+        // ---------- 세부 항목 (팝업 안에서 여러 건 입력 → 합계를 최종 금액으로) ----------
+        let modalSplit = false, modalDetails = [];
+        const detailsSum = () => clampAmount(modalDetails.reduce((a, d) => a + parseAmountValue(d.amount), 0));
+        function updateDetailTotal() {
+            if (!modalSplit) return;
+            $('item-amount').value = detailsSum().toLocaleString('ko-KR');
+            const n = modalDetails.filter(d => d.name.trim() || parseAmountValue(d.amount)).length;
+            $('detail-count').textContent = n ? `${n}건` : '';
+        }
+        function renderDetails(focusLast = false) {
+            const amt = $('item-amount');
+            $('detail-section').classList.toggle('hidden', !modalSplit);
+            amt.readOnly = modalSplit;
+            amt.classList.toggle('is-auto', modalSplit);
+            $('item-amount-label').textContent = modalSplit ? '금액 (원) · 세부 항목 합계로 자동 계산' : '금액 (원)';
+            $('detail-forward-wrap').classList.toggle('hidden', !modalSplit || !editingItemId || currentMonth === 12);
+            if (!modalSplit) return;
+            const list = $('detail-list');
+            list.innerHTML = modalDetails.length === 0
+                ? '<p class="text-[13px] text-pastel-subtext text-center py-2">\'추가\'를 눌러 세부 항목을 넣어 주세요</p>'
+                : modalDetails.map((d, i) => `
+                    <div class="flex items-center gap-1.5">
+                        <input type="text" data-i="${i}" data-f="name" value="${escapeHtml(d.name)}" maxlength="20" placeholder="예: DB손해보험" aria-label="세부 항목 이름"
+                            class="flex-1 min-w-0 px-3 py-2 rounded-xl bg-white border border-pastel-pink/60 focus:outline-none focus:border-pastel-pinkDark text-sm">
+                        <div class="relative w-[40%] shrink-0">
+                            <input type="text" data-i="${i}" data-f="amount" value="${escapeHtml(d.amount)}" inputmode="numeric" maxlength="15" placeholder="0" aria-label="세부 항목 금액"
+                                class="w-full px-3 py-2 pr-7 rounded-xl bg-white border border-pastel-pink/60 focus:outline-none focus:border-pastel-pinkDark text-sm font-bold text-right tabular-nums">
+                            <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-pastel-subtext">원</span>
+                        </div>
+                        <button type="button" data-del="${i}" aria-label="세부 항목 삭제" class="shrink-0 w-8 h-8 rounded-full text-gray-500 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center">${ic('trash', 'text-sm')}</button>
+                    </div>`).join('');
+            $('detail-add-btn').disabled = modalDetails.length >= MAX_DETAILS;
+            updateDetailTotal();
+            if (focusLast) {
+                const inp = list.querySelector(`input[data-i="${modalDetails.length - 1}"][data-f="name"]`);
+                if (inp) inp.focus();
+            }
+        }
+        function setupDetails(split, details, fallbackAmount) {
+            modalSplit = !!split;
+            modalDetails = (details || []).map(d => ({ id: d.id, name: d.name, amount: d.amount ? Number(d.amount).toLocaleString('ko-KR') : '' }));
+            if (modalSplit && !modalDetails.length && fallbackAmount > 0) {   // 세부 항목 없이 넣어 둔 기존 금액은 한 줄로 옮겨 둠
+                modalDetails.push({ id: uid('d'), name: '기존 금액', amount: Number(fallbackAmount).toLocaleString('ko-KR') });
+            }
+            $('detail-forward').checked = false;
+            renderDetails();
+        }
+        function collectDetails() {
+            return modalDetails
+                .map(d => ({ id: d.id || uid('d'), name: d.name.trim().slice(0, 20), amount: parseAmountValue(d.amount) }))
+                .filter(d => d.name || d.amount)
+                .map((d, i) => ({ ...d, name: d.name || `세부 ${i + 1}` }));
+        }
+        const copyDetails = details => details.map(d => ({ id: uid('d'), name: d.name, amount: d.amount }));
+
         function prepareItemModal(cat, title, submitText, isEdit) {
             $('modal-category-icon').className = `w-8 h-8 rounded-full flex items-center justify-center text-lg ${cat.iconClass}`;
             $('modal-category-icon').innerHTML = `${ic(cat.icon)}`;
@@ -877,6 +1012,7 @@
             $('item-name').value = '';
             $('item-amount').value = '';
             populateAccountSelect('');
+            setupDetails(false, [], 0);
             showModal('add-item-modal');
         };
         window.openEditModal = function (categoryId, itemId) {
@@ -889,6 +1025,8 @@
             $('item-name').value = item.name;
             $('item-amount').value = item.amount ? Number(item.amount).toLocaleString('ko-KR') : '0';
             populateAccountSelect(item.accountId || '');
+            setupDetails(item.split, item.details, item.amount);
+            $('detail-forward-label').textContent = `${currentMonth + 1}월~12월에도 같은 세부 항목으로 적용`;
             showModal('add-item-modal');
         };
         function closeAddModal() {
@@ -904,7 +1042,7 @@
             const item = findItem(month, catId, itemId);
             if (!item) return;
             const name = item.name;
-            const draft = { name: $('item-name').value, amount: $('item-amount').value, account: $('item-account').value };
+            const draft = { name: $('item-name').value, amount: $('item-amount').value, account: $('item-account').value, details: modalDetails.map(d => ({ ...d })), forward: $('detail-forward').checked };
             closeAddModal();
             openConfirm({
                 onCancel: () => {
@@ -914,9 +1052,10 @@
                     $('item-name').value = draft.name;
                     $('item-amount').value = draft.amount;
                     $('item-account').value = draft.account;
+                    if (modalSplit) { modalDetails = draft.details; $('detail-forward').checked = draft.forward; renderDetails(); }
                 },
                 title: '정말 삭제할까요?',
-                desc: `<strong class="text-pastel-text">'${escapeHtml(name)}'</strong> 항목을<br>이 달만 삭제할지, 모든 월(1~12월)에서 삭제할지 골라 주세요.<br><span class="text-[13px]">모든 월 삭제는 같은 이름의 항목을 전부 지워요.</span>`,
+                desc: `<strong class="text-pastel-text">'${escapeHtml(name)}'</strong> 항목을<br>이 달만 삭제할지, 모든 월(1~12월)에서 삭제할지 골라 주세요.`,
                 okText: '이 달만 삭제',
                 altText: '모든 월에서 삭제',
                 onOk: () => {
@@ -927,10 +1066,14 @@
                     commit(`${month}월 '${name}' 삭제되었어요`);
                 },
                 onAlt: () => {
+                    const cur = findItem(month, catId, itemId);
+                    const gid = cur ? cur.gid : item.gid;
+                    let removed = 0;
                     for (let m = 1; m <= 12; m++) {
                         const l = budgetData[m][catId];
-                        for (let i = l.length - 1; i >= 0; i--) if (l[i].name === name) l.splice(i, 1);
+                        for (let i = l.length - 1; i >= 0; i--) if (l[i].gid === gid) { l.splice(i, 1); removed++; }
                     }
+                    if (!removed) return;
                     commit(`'${name}' 항목을 모든 월에서 삭제했어요`);
                 }
             });
@@ -1399,46 +1542,104 @@
                 const raw = e.target.value.replace(/[^\d]/g, '').slice(0, 12);
                 e.target.value = raw ? clampAmount(parseInt(raw, 10)).toLocaleString('ko-KR') : '';
             });
-            amountInput.addEventListener('focus', () => amountInput.select());
+            amountInput.addEventListener('focus', () => { if (!amountInput.readOnly) amountInput.select(); });
+
+            // 세부 항목 입력
+            const detailList = $('detail-list');
+            detailList.addEventListener('input', e => {
+                const i = Number(e.target.dataset.i), f = e.target.dataset.f;
+                if (!modalDetails[i] || !f) return;
+                if (f === 'amount') {
+                    const raw = e.target.value.replace(/[^\d]/g, '').slice(0, 12);
+                    e.target.value = raw ? clampAmount(parseInt(raw, 10)).toLocaleString('ko-KR') : '';
+                }
+                modalDetails[i][f] = e.target.value;
+                updateDetailTotal();
+            });
+            detailList.addEventListener('keydown', e => {      // 세부 항목 칸에서 Enter → 저장 대신 다음 칸으로
+                if (e.key !== 'Enter' || !e.target.dataset.f) return;
+                e.preventDefault();
+                const inputs = [...detailList.querySelectorAll('input')];
+                const next = inputs[inputs.indexOf(e.target) + 1];
+                if (next) next.focus(); else e.target.blur();
+            });
+            detailList.addEventListener('click', e => {
+                const btn = e.target.closest('[data-del]');
+                if (!btn) return;
+                modalDetails.splice(Number(btn.dataset.del), 1);
+                renderDetails();
+            });
+            $('detail-add-btn').addEventListener('click', () => {
+                if (modalDetails.length >= MAX_DETAILS) return;
+                modalDetails.push({ id: uid('d'), name: '', amount: '' });
+                renderDetails(true);
+            });
+            // 새 항목을 추가할 때 이름이 보험료·할부 등이면 세부 항목 입력으로 전환
+            $('item-name').addEventListener('input', () => {
+                if (editingItemId || !activeModalCategoryId) return;
+                const nm = $('item-name').value.trim();
+                const g = gidByName(activeModalCategoryId, nm);
+                let linkedSplit = false;
+                if (g) forEachLinked(activeModalCategoryId, g, it => { if (it.split) linkedSplit = true; });
+                const want = isSplitName(activeModalCategoryId, nm) || linkedSplit;
+                if (want !== modalSplit) { modalSplit = want; renderDetails(); if (!want) amountInput.value = ''; }
+            });
 
             // 항목 추가/수정 제출
             $('add-item-form').addEventListener('submit', e => {
                 e.preventDefault();
                 if (!activeModalCategoryId) return;
                 const name = $('item-name').value.trim();
-                const amount = parseAmountValue(amountInput.value);
+                let amount = parseAmountValue(amountInput.value);
+                const details = modalSplit ? collectDetails() : [];
+                if (modalSplit) amount = clampAmount(details.reduce((a, d) => a + d.amount, 0));   // 최종 금액 = 세부 합계
                 const accountId = $('item-account').value;
                 if (!name) { showToast('항목 이름을 입력해 주세요', true); return; }
-                const list = budgetData[currentMonth][activeModalCategoryId];
+                const catId = activeModalCategoryId, month = currentMonth;
+                const list = budgetData[month][catId];
                 let msg;
                 if (editingItemId) {
                     const t = list.find(i => i.id === editingItemId);
-                    let carried = false;
-                    if (t) {
-                        const oldName = t.name, accountChanged = t.accountId !== accountId;
-                        t.name = name; t.amount = amount; t.accountId = accountId;
-                        if (accountChanged) {      // 통장 변경은 이 달 + 이후 모든 달의 같은 항목에 적용
-                            for (let m = currentMonth + 1; m <= 12; m++) {
-                                (budgetData[m][activeModalCategoryId] || []).forEach(it => {
-                                    if (it.name === oldName) { it.accountId = accountId; carried = true; }
-                                });
-                            }
-                        }
+                    if (!t) { closeAddModal(); showToast('다른 기기에서 삭제된 항목이에요', true); renderMonthCategories(); return; }
+                    // 이름 변경은 모든 달에 적용 → 다른 항목이 이미 쓰는 이름이면 막음
+                    const otherGid = gidByName(catId, name);
+                    if (otherGid && otherGid !== t.gid) { showToast(`'${name}' 이름의 항목이 이미 있어요`, true); return; }
+                    const renamed = t.name !== name, accountChanged = t.accountId !== accountId;
+                    t.amount = amount;                                                   // 금액: 이 달만
+                    if (t.split) t.details = details;
+                    let forwarded = false;
+                    if (t.split && $('detail-forward').checked && month < 12) {          // 세부 항목: 원하면 이후 달에도
+                        forEachLinked(catId, t.gid, it => { it.details = copyDetails(details); it.amount = amount; forwarded = true; }, month + 1);
                     }
-                    msg = `'${name}' 수정되었어요` + (carried ? ` (통장 연결은 ${currentMonth}월 이후 모든 달에 적용)` : '');
+                    if (renamed) {                                                       // 이름: 모든 달
+                        const makeSplit = !t.split && isSplitName(catId, name);
+                        forEachLinked(catId, t.gid, it => { it.name = name; if (makeSplit) { it.split = true; it.details = it.details || []; } });
+                    }
+                    let carried = false;
+                    if (accountChanged) {                                                // 통장: 이 달 + 이후 달
+                        forEachLinked(catId, t.gid, (it, m) => { it.accountId = accountId; if (m > month) carried = true; }, month);
+                    }
+                    const notes = [];
+                    if (renamed) notes.push('이름은 모든 달에 적용');
+                    if (carried) notes.push(`통장은 ${month}월 이후 모든 달에 적용`);
+                    if (forwarded) notes.push(`세부 항목은 ${month + 1}월 이후에도 적용`);
+                    msg = `'${name}' 수정되었어요` + (notes.length ? ` (${notes.join(', ')})` : '');
                 } else {
                     const scope = (document.querySelector('input[name="add-scope"]:checked') || {}).value;
+                    const gid = gidByName(catId, name) || uid('g');   // 다른 달에 같은 이름이 있으면 같은 항목으로 연결
                     if (scope === 'all') {
                         let skipped = 0;
                         for (let m = 1; m <= 12; m++) {
-                            const l = budgetData[m][activeModalCategoryId];
-                            if (l.some(i => i.name === name)) { skipped++; continue; }   // 같은 이름이 이미 있는 달은 건너뜀
-                            l.push({ id: uid('item'), name, amount, accountId });
+                            const l = budgetData[m][catId];
+                            if (l.some(i => i.gid === gid)) { skipped++; continue; }   // 이미 있는 달은 건너뜀
+                            l.push({ id: uid('item'), gid, name, amount, accountId, split: modalSplit, details: copyDetails(details) });
                         }
+                        if (skipped === 12) { showToast(`'${name}' 항목은 이미 모든 달에 있어요`, true); return; }
                         msg = `'${name}' 항목을 모든 월에 추가했어요` + (skipped ? ` (이미 있는 ${skipped}개 월은 건너뜀)` : '');
                     } else {
-                        list.push({ id: uid('item'), name, amount, accountId });
-                        msg = `${currentMonth}월 내역에 '${name}' 추가 완료`;
+                        if (list.some(i => i.gid === gid)) { showToast(`이 달에 이미 '${name}' 항목이 있어요`, true); return; }
+                        list.push({ id: uid('item'), gid, name, amount, accountId, split: modalSplit, details: copyDetails(details) });
+                        msg = `${month}월 내역에 '${name}' 추가 완료`;
                     }
                 }
                 closeAddModal();
