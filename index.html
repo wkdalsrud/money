@@ -77,7 +77,7 @@
 
         /* 키보드 포커스 표시 */
         button:focus-visible, li[role="button"]:focus-visible, select:focus-visible {
-            outline: 2px solid #7E22CE; outline-offset: 2px;
+            outline: 2px solid #A663CC; outline-offset: 2px;
         }
         .hidden { display: none; }
         html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
@@ -99,7 +99,7 @@
                 </div>
                 <div id="login-actions" class="hidden space-y-3">
                     <p class="text-sm text-pastel-text leading-relaxed">로그인하면 여러 기기에서<br>같은 가계부를 볼 수 있어요</p>
-                    <button id="google-login-btn" type="button" class="w-full py-3 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-base shadow-md transition-bounce inline-flex items-center justify-center gap-2"><i data-ic="user"></i> 구글로 로그인</button>
+                    <button id="google-login-btn" type="button" class="w-full py-3 rounded-2xl bg-pastel-pink hover:bg-[#FFC4D3] text-rose-900 border border-pastel-pinkDark/50 font-bold text-base shadow-md transition-bounce inline-flex items-center justify-center gap-2"><i data-ic="user"></i> 구글로 로그인</button>
                     <p id="login-msg" role="status" class="text-[13px] min-h-[1.25rem] leading-snug text-amber-800 font-medium"></p>
                     <button id="local-only-btn" type="button" class="text-[13px] text-pastel-subtext underline underline-offset-2 hover:text-pastel-text">로그인 없이 이 기기에서만 사용</button>
                 </div>
@@ -188,7 +188,7 @@
             <!-- 현재 선택된 월 타이틀 & 월별 미니 요약 -->
             <div class="bg-white/80 backdrop-blur-sm rounded-2xl px-3.5 sm:px-5 py-3 mb-5 border border-pastel-pink/40 shadow-sm">
                 <div class="flex items-center gap-1 mb-2.5">
-                    <span id="current-month-badge" class="font-cute text-lg sm:text-2xl text-rose-600">1월</span>
+                    <span id="current-month-badge" class="font-cute text-lg sm:text-2xl text-pastel-pinkDark">1월</span>
                     <span class="font-cute text-base sm:text-xl text-pastel-text">예산 내역</span>
                 </div>
                 <div class="grid grid-cols-2 gap-2 text-[13px] sm:text-sm font-medium">
@@ -260,11 +260,11 @@
                     <div class="grid grid-cols-2 gap-2">
                         <label class="cursor-pointer">
                             <input type="radio" name="add-scope" value="month" checked class="peer sr-only">
-                            <span id="scope-month-label" class="block text-center text-[13px] font-bold py-2.5 rounded-2xl border-2 border-pastel-pink/60 bg-pastel-bg text-pastel-subtext peer-checked:bg-rose-600 peer-checked:border-rose-600 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-purple-700 transition-colors">이 달에만</span>
+                            <span id="scope-month-label" class="block text-center text-[13px] font-bold py-2.5 rounded-2xl border-2 border-pastel-pink/60 bg-pastel-bg text-pastel-subtext peer-checked:bg-pastel-pink peer-checked:border-pastel-pinkDark peer-checked:text-rose-900 peer-focus-visible:ring-2 peer-focus-visible:ring-purple-700 transition-colors">이 달에만</span>
                         </label>
                         <label class="cursor-pointer">
                             <input type="radio" name="add-scope" value="all" class="peer sr-only">
-                            <span class="block text-center text-[13px] font-bold py-2.5 rounded-2xl border-2 border-pastel-pink/60 bg-pastel-bg text-pastel-subtext peer-checked:bg-rose-600 peer-checked:border-rose-600 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-purple-700 transition-colors">모든 월 (1~12월)</span>
+                            <span class="block text-center text-[13px] font-bold py-2.5 rounded-2xl border-2 border-pastel-pink/60 bg-pastel-bg text-pastel-subtext peer-checked:bg-pastel-pink peer-checked:border-pastel-pinkDark peer-checked:text-rose-900 peer-focus-visible:ring-2 peer-focus-visible:ring-purple-700 transition-colors">모든 월 (1~12월)</span>
                         </label>
                     </div>
                 </fieldset>
@@ -273,7 +273,7 @@
                     <button type="button" id="cancel-modal-btn" class="flex-1 py-2.5 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-sm transition-bounce">
                         취소
                     </button>
-                    <button type="submit" id="submit-modal-btn" class="flex-1 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-md transition-bounce">
+                    <button type="submit" id="submit-modal-btn" class="flex-1 py-2.5 rounded-2xl bg-pastel-pink hover:bg-[#FFC4D3] text-rose-900 border border-pastel-pinkDark/50 font-bold text-sm shadow-md transition-bounce">
                         추가하기
                     </button>
                 </div>
@@ -298,7 +298,7 @@
             <form id="add-account-form" class="flex items-center gap-1.5 mb-3.5">
                 <input type="text" id="new-account-name" maxlength="16" placeholder="예: 생활비 통장" required
                     class="flex-1 min-w-0 px-3 py-2 rounded-2xl bg-pastel-bg border border-pastel-purple focus:outline-none focus:border-pastel-purpleDark text-base">
-                <button type="submit" class="shrink-0 px-3.5 py-2 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-[13px] sm:text-sm transition-bounce whitespace-nowrap">
+                <button type="submit" class="shrink-0 px-3.5 py-2 rounded-2xl bg-pastel-purple hover:bg-[#D7B3FF] text-purple-900 border border-pastel-purpleDark/40 font-bold text-[13px] sm:text-sm transition-bounce whitespace-nowrap">
                     등록
                 </button>
             </form>
@@ -320,7 +320,7 @@
                 <button type="button" id="cancel-account-modal-btn" class="flex-1 py-2.5 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-sm transition-bounce">
                     취소
                 </button>
-                <button type="button" id="save-account-modal-btn" class="flex-1 py-2.5 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-sm shadow-md transition-bounce">
+                <button type="button" id="save-account-modal-btn" class="flex-1 py-2.5 rounded-2xl bg-pastel-purple hover:bg-[#D7B3FF] text-purple-900 border border-pastel-purpleDark/40 font-bold text-sm shadow-md transition-bounce">
                     저장
                 </button>
             </div>
@@ -341,8 +341,8 @@
                 <button type="button" id="cancel-delete-btn" class="flex-1 py-2.5 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-sm transition-bounce">
                     취소
                 </button>
-                <button type="button" id="confirm-alt-btn" class="hidden order-2 py-2.5 rounded-2xl bg-rose-800 hover:bg-rose-900 text-white font-bold text-sm shadow-md transition-bounce"></button>
-                    <button type="button" id="confirm-delete-btn" class="flex-1 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-md transition-bounce">
+                <button type="button" id="confirm-alt-btn" class="hidden order-2 py-2.5 rounded-2xl bg-[#FFB8C9] hover:bg-[#FFA6BB] text-rose-950 border border-pastel-pinkDark/60 font-bold text-sm shadow-md transition-bounce"></button>
+                    <button type="button" id="confirm-delete-btn" class="flex-1 py-2.5 rounded-2xl bg-pastel-pink hover:bg-[#FFC4D3] text-rose-900 border border-pastel-pinkDark/50 font-bold text-sm shadow-md transition-bounce">
                     삭제하기
                 </button>
             </div>
@@ -350,7 +350,7 @@
     </div>
 
     <!-- 토스트 알림 메시지 -->
-    <div id="toast-msg" role="status" aria-live="polite" class="fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-50 bg-pastel-text text-white text-[13px] sm:text-sm font-medium px-5 py-3 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-300 flex items-center gap-1.5 whitespace-nowrap max-w-[92vw]">
+    <div id="toast-msg" role="status" aria-live="polite" class="fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-50 bg-pastel-purple text-purple-950 border border-pastel-purpleDark/40 text-[13px] sm:text-sm font-medium px-5 py-3 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-300 flex items-center gap-1.5 whitespace-nowrap max-w-[92vw]">
         <i data-ic="check" class="shrink-0"></i>
         <span id="toast-text" class="truncate">저장되었습니다!</span>
     </div>
@@ -402,27 +402,27 @@
             { id: 'income', name: '수입', icon: 'dollar', type: 'income', accountLabel: '입금 통장',
               iconClass: 'bg-blue-100 text-blue-700',
               bgClass: 'bg-gradient-to-br from-pastel-blue/35 to-white', borderClass: 'border-pastel-blue',
-              badgeClass: 'bg-pastel-blue/60 text-blue-900', btnClass: 'bg-blue-700 hover:bg-blue-800 text-white' },
+              badgeClass: 'bg-pastel-blue/60 text-blue-900', btnClass: 'bg-pastel-blue hover:bg-[#A9D5FD] text-blue-900 border border-pastel-blueDark/40' },
             { id: 'fixed', name: '고정지출', icon: 'home', type: 'expense', accountLabel: '출금 통장',
               iconClass: 'bg-rose-100 text-rose-700',
               bgClass: 'bg-gradient-to-br from-pastel-pink/35 to-white', borderClass: 'border-pastel-pink',
-              badgeClass: 'bg-pastel-pink/60 text-rose-900', btnClass: 'bg-rose-600 hover:bg-rose-700 text-white' },
+              badgeClass: 'bg-pastel-pink/60 text-rose-900', btnClass: 'bg-pastel-pink hover:bg-[#FFC4D3] text-rose-900 border border-pastel-pinkDark/50' },
             { id: 'card', name: '카드대금', icon: 'card', type: 'expense', accountLabel: '출금 통장',
               iconClass: 'bg-purple-100 text-purple-700',
               bgClass: 'bg-gradient-to-br from-pastel-purple/35 to-white', borderClass: 'border-pastel-purple',
-              badgeClass: 'bg-pastel-purple/60 text-purple-900', btnClass: 'bg-purple-700 hover:bg-purple-800 text-white' },
+              badgeClass: 'bg-pastel-purple/60 text-purple-900', btnClass: 'bg-pastel-purple hover:bg-[#D7B3FF] text-purple-900 border border-pastel-purpleDark/40' },
             { id: 'variable', name: '변동지출', icon: 'bag', type: 'expense', accountLabel: '출금 통장',
               iconClass: 'bg-orange-100 text-orange-700',
               bgClass: 'bg-gradient-to-br from-pastel-peach/45 to-white', borderClass: 'border-pastel-peach',
-              badgeClass: 'bg-pastel-peach/70 text-orange-900', btnClass: 'bg-orange-700 hover:bg-orange-800 text-white' },
+              badgeClass: 'bg-pastel-peach/70 text-orange-900', btnClass: 'bg-pastel-peach hover:bg-[#FFCAA6] text-orange-900 border border-pastel-peachDark/40' },
             { id: 'emergency', name: '비상금', icon: 'lifebuoy', type: 'saving', accountLabel: '입금 통장',
               iconClass: 'bg-amber-100 text-amber-700',
               bgClass: 'bg-gradient-to-br from-pastel-yellow/55 to-white', borderClass: 'border-pastel-yellowDark/40',
-              badgeClass: 'bg-pastel-yellow text-amber-900', btnClass: 'bg-amber-700 hover:bg-amber-800 text-white' },
+              badgeClass: 'bg-pastel-yellow text-amber-900', btnClass: 'bg-pastel-yellow hover:bg-[#FFEA8C] text-amber-900 border border-pastel-yellowDark/40' },
             { id: 'saving', name: '저축', icon: 'piggy', type: 'saving', accountLabel: '입금 통장',
               iconClass: 'bg-emerald-100 text-emerald-700',
               bgClass: 'bg-gradient-to-br from-pastel-mint/45 to-white', borderClass: 'border-pastel-mintDark/40',
-              badgeClass: 'bg-pastel-mint text-emerald-900', btnClass: 'bg-emerald-700 hover:bg-emerald-800 text-white' }
+              badgeClass: 'bg-pastel-mint text-emerald-900', btnClass: 'bg-pastel-mint hover:bg-[#A8F0B3] text-emerald-900 border border-pastel-mintDark/40' }
         ];
 
         // ================== Firebase 설정 ==================
@@ -644,7 +644,7 @@
                 btn.dataset.month = m;
                 btn.setAttribute('aria-pressed', sel ? 'true' : 'false');
                 btn.className = `shrink-0 px-4 py-2 rounded-2xl font-cute text-sm sm:text-base transition-bounce border-2 ${
-                    sel ? 'bg-rose-600 text-white border-rose-600 shadow-md scale-105'
+                    sel ? 'bg-pastel-pink text-rose-900 border-pastel-pinkDark shadow-md scale-105'
                         : 'bg-white/90 text-pastel-subtext border-pastel-pink/40 hover:border-pastel-pinkDark/60 hover:text-pastel-text'}`;
                 btn.textContent = `${m}월`;
                 btn.addEventListener('click', () => selectMonth(m));
@@ -1054,8 +1054,8 @@
         function showToast(message, isError = false) {
             const toast = $('toast-msg');
             $('toast-text').textContent = message;
-            toast.classList.toggle('bg-rose-700', isError);
-            toast.classList.toggle('bg-pastel-text', !isError);
+            toast.classList.toggle('bg-pastel-pink', isError);
+            toast.classList.toggle('bg-pastel-purple', !isError);
             toast.classList.remove('opacity-0');
             toast.classList.add('opacity-100');
             clearTimeout(toastTimer);
