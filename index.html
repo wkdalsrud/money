@@ -835,12 +835,12 @@
                                         onclick="openEditModal('${cat.id}', '${item.id}')"
                                         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openEditModal('${cat.id}', '${item.id}')}"
                                         class="flex items-center justify-between gap-2 bg-white/85 hover:bg-white px-3.5 py-3 rounded-2xl shadow-sm cursor-pointer transition-colors ${zero ? 'opacity-70' : ''}">
-                                        <div class="flex flex-wrap items-center gap-x-2 gap-y-1 min-w-0 flex-1">
-                                            <div class="min-w-0">
-                                                <span class="block text-sm sm:text-base font-medium text-pastel-text truncate">${escapeHtml(item.name)}</span>
-                                                ${item.split && item.details.length ? `<span class="block text-xs text-pastel-subtext truncate">${escapeHtml(item.details[0].name)}${item.details.length > 1 ? ` 외 ${item.details.length - 1}건` : ''}</span>` : ''}
+                                        <div class="min-w-0 flex-1">
+                                            <div class="flex flex-wrap items-center gap-x-2 gap-y-1 min-w-0">
+                                                <span class="min-w-0 max-w-full truncate text-sm sm:text-base font-medium text-pastel-text">${escapeHtml(item.name)}</span>
+                                                ${accName ? `<span class="max-w-full truncate inline-block px-2 py-0.5 rounded-md bg-pastel-purple/30 text-purple-900 border border-pastel-purple/60 text-xs sm:text-[13px] font-semibold">${escapeHtml(accName)}</span>` : ''}
                                             </div>
-                                            ${accName ? `<span class="max-w-full truncate inline-block px-2 py-0.5 rounded-md bg-pastel-purple/30 text-purple-900 border border-pastel-purple/60 text-xs sm:text-[13px] font-semibold">${escapeHtml(accName)}</span>` : ''}
+                                            ${item.split && item.details.length ? `<span class="block mt-0.5 text-xs text-pastel-subtext truncate">${escapeHtml(item.details[0].name)}${item.details.length > 1 ? ` 외 ${item.details.length - 1}건` : ''}</span>` : ''}
                                         </div>
                                         <div class="flex items-center gap-1 shrink-0">
                                             <span class="text-sm sm:text-base tabular-nums ${zero ? 'font-medium text-pastel-subtext' : 'font-bold text-pastel-text'}">${formatCurrency(item.amount)}</span>
@@ -890,6 +890,46 @@
             clearTimeout(restoreTimer);
             restoreTimer = setTimeout(restore, 400);     // 키보드가 내려가며 화면이 다시 움직이는 경우까지 보정
         }
+        const panelOf = m => m.querySelector('[role="dialog"],[role="alertdialog"]');
+        function fitModalsToViewport() {
+            const vv = window.visualViewport;
+            MODAL_IDS.forEach(id => {
+                const m = $(id), panel = m && panelOf(m);
+                if (!m || m.classList.contains('hidden') || !vv) return;
+                const keyboardLikely = vv.height < window.innerHeight - 80;   // 키보드 등으로 보이는 영역이 줄었을 때만 조정
+                m.style.top = keyboardLikely ? `${vv.offsetTop}px` : '';
+                m.style.height = keyboardLikely ? `${vv.height}px` : '';
+                m.style.bottom = keyboardLikely ? 'auto' : '';
+                if (panel) panel.style.maxHeight = keyboardLikely ? `${Math.max(200, vv.height - 24)}px` : '';
+            });
+        }
+        function resetModalFit(m) {
+            m.style.top = m.style.height = m.style.bottom = '';
+            const panel = panelOf(m);
+            if (panel) panel.style.maxHeight = '';
+        }
+        // 팝업 안에서 지금 누른 칸이 보이도록 팝업 내용만 스크롤 (페이지는 움직이지 않음)
+        function revealFocused() {
+            const el = document.activeElement;
+            if (!el || !el.matches || !el.matches('input,select,textarea')) return;
+            const m = MODAL_IDS.map($).find(x => x && !x.classList.contains('hidden') && x.contains(el));
+            if (!m) return;
+            fitModalsToViewport();
+            const panel = panelOf(m);
+            if (!panel) return;
+            const pr = panel.getBoundingClientRect(), er = el.getBoundingClientRect();
+            const vv = window.visualViewport;
+            const visBottom = Math.min(pr.bottom, vv ? vv.offsetTop + vv.height : window.innerHeight) - 12;
+            const visTop = Math.max(pr.top, vv ? vv.offsetTop : 0) + 12;
+            if (er.bottom > visBottom) panel.scrollTop += er.bottom - visBottom;
+            else if (er.top < visTop) panel.scrollTop -= visTop - er.top;
+        }
+        let revealTimer = null;
+        function scheduleReveal() {
+            clearTimeout(revealTimer);
+            revealFocused();
+            revealTimer = setTimeout(revealFocused, 350);   // 키보드가 다 올라온 뒤 한 번 더
+        }
         function showModal(id) {
             const m = $(id);
             m._opener = document.activeElement;
@@ -905,6 +945,7 @@
             if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
             m.classList.add('hidden');
             m.classList.remove('flex');
+            resetModalFit(m);
             if (!anyModalOpen()) {
                 unlockScroll();
                 if (reconnectWanted) { reconnectWanted = false; setTimeout(tryReconnect, 300); }
@@ -1053,7 +1094,7 @@
             $('item-amount').value = item.amount ? Number(item.amount).toLocaleString('ko-KR') : '0';
             populateAccountSelect(item.accountId || '');
             setupDetails(item.split, item.details, item.amount);
-            $('detail-forward-label').textContent = `${currentMonth + 1}월~12월에도 같은 세부 항목으로 적용`;
+            $('detail-forward-label').textContent = `${currentMonth + 1 === 12 ? '12월' : `${currentMonth + 1}월~12월`}에도 같은 세부 항목으로 적용`;
             showModal('add-item-modal');
             rememberItemForm();
         };
@@ -1861,6 +1902,14 @@
                 if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
                 else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
             });
+
+            // 팝업 입력칸이 키보드에 가리지 않게
+            document.addEventListener('focusin', e => { if (anyModalOpen() && e.target.matches && e.target.matches('input,select,textarea')) scheduleReveal(); });
+            if (window.visualViewport) {
+                const onVV = () => { if (anyModalOpen()) { fitModalsToViewport(); revealFocused(); } };
+                window.visualViewport.addEventListener('resize', onVV);
+                window.visualViewport.addEventListener('scroll', onVV);
+            }
 
             // 모바일 스와이프로 월 이동 (한 손가락·빠른 가로 스와이프만, 확대 중이거나 팝업이 열려 있으면 무시)
             let sw = null;
