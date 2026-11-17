@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <script>(function(){var u=navigator.userAgent,ios=/iP(hone|ad|od)/.test(u)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);if(ios){var m=document.querySelector("meta[name=viewport]");m.setAttribute("content",m.getAttribute("content")+", maximum-scale=1");}})();</script>
     <title>2026 Money - 귀여운 파스텔 연간 예산 기록</title>
     
     <!-- Google Fonts: Jua (귀여운 포인트 타이틀) & Noto Sans KR (깔끔한 본문/숫자) -->
@@ -78,6 +79,8 @@
         button:focus-visible, li[role="button"]:focus-visible, select:focus-visible {
             outline: 2px solid #7E22CE; outline-offset: 2px;
         }
+        .hidden { display: none; }
+        html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
     </style>
 </head>
 <body class="text-pastel-text font-sans min-h-screen pb-16 selection:bg-pastel-pink selection:text-pastel-text overflow-x-hidden">
@@ -181,7 +184,7 @@
         </section>
 
         <!-- 4. 선택된 월의 요약 배너 & 6개 카테고리 카드 영역 -->
-        <main id="month-content-area" class="touch-pan-y">
+        <main id="month-content-area" class="touch-pan-y touch-pinch-zoom">
             <!-- 현재 선택된 월 타이틀 & 월별 미니 요약 -->
             <div class="bg-white/80 backdrop-blur-sm rounded-2xl px-3.5 sm:px-5 py-3 mb-5 border border-pastel-pink/40 shadow-sm">
                 <div class="flex items-center gap-1 mb-2.5">
@@ -215,8 +218,8 @@
     </div>
 
     <!-- 소분류 항목 추가/수정 모달 -->
-    <div id="add-item-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/35 backdrop-blur-sm overflow-y-auto p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-        <div role="dialog" aria-modal="true" aria-labelledby="modal-title" class="bg-white rounded-3xl w-full max-w-[340px] sm:max-w-md p-5 sm:p-6 shadow-2xl border-2 border-pastel-pink my-auto max-h-[calc(100dvh-2.5rem)] overflow-y-auto">
+    <div id="add-item-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/35 backdrop-blur-sm overflow-y-auto overscroll-contain p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        <div role="dialog" aria-modal="true" aria-labelledby="modal-title" class="bg-white rounded-3xl w-full max-w-[340px] sm:max-w-md p-5 sm:p-6 shadow-2xl border-2 border-pastel-pink my-auto max-h-[calc(100dvh-2.5rem)] overflow-y-auto overscroll-contain">
             <div class="flex items-center justify-between mb-3.5">
                 <div class="flex items-center gap-2">
                     <span id="modal-category-icon" class="w-8 h-8 rounded-full flex items-center justify-center text-lg bg-pastel-pink/40 text-pastel-pinkDark"></span>
@@ -279,8 +282,8 @@
     </div>
 
     <!-- 내 통장 관리 모달 -->
-    <div id="account-manager-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/35 backdrop-blur-sm overflow-y-auto p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-        <div role="dialog" aria-modal="true" aria-labelledby="account-modal-title" class="bg-white rounded-3xl w-full max-w-[350px] sm:max-w-md p-5 sm:p-6 shadow-2xl border-2 border-pastel-purple my-auto max-h-[calc(100dvh-2.5rem)] overflow-y-auto">
+    <div id="account-manager-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/35 backdrop-blur-sm overflow-y-auto overscroll-contain p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        <div role="dialog" aria-modal="true" aria-labelledby="account-modal-title" class="bg-white rounded-3xl w-full max-w-[350px] sm:max-w-md p-5 sm:p-6 shadow-2xl border-2 border-pastel-purple my-auto max-h-[calc(100dvh-2.5rem)] overflow-y-auto overscroll-contain">
             <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2">
                     <i data-ic="bank" class="text-xl text-pastel-purpleDark"></i>
@@ -325,8 +328,8 @@
     </div>
 
     <!-- 삭제 확인 모달 -->
-    <div id="delete-confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/35 backdrop-blur-sm overflow-y-auto p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-        <div role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" class="bg-white rounded-3xl w-full max-w-[330px] p-5 sm:p-6 shadow-2xl border-2 border-pastel-pink text-center my-auto max-h-[calc(100dvh-2.5rem)] overflow-y-auto">
+    <div id="delete-confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/35 backdrop-blur-sm overflow-y-auto overscroll-contain p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        <div role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" class="bg-white rounded-3xl w-full max-w-[330px] p-5 sm:p-6 shadow-2xl border-2 border-pastel-pink text-center my-auto max-h-[calc(100dvh-2.5rem)] overflow-y-auto overscroll-contain">
             <div class="w-12 h-12 rounded-full bg-pastel-pink/40 text-pastel-pinkDark flex items-center justify-center mx-auto mb-3 text-2xl">
                 <i data-ic="alert" class=""></i>
             </div>
@@ -354,6 +357,9 @@
 
     <script>
         const $ = id => document.getElementById(id);
+        const IS_TOUCH = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+        const MODAL_IDS = ['add-item-modal', 'account-manager-modal', 'delete-confirm-modal'];
+        const anyModalOpen = () => MODAL_IDS.some(id => { const m = $(id); return m && !m.classList.contains('hidden'); });
 
         // ---------- 아이콘 (인라인 SVG: 외부 아이콘 라이브러리가 필요 없어요) ----------
         const ICONS = {
@@ -555,9 +561,9 @@
 
         // 로컬 저장은 "캐시/오프라인용", 기준 데이터는 로그인 시 Firestore
         const meta0 = readJSON(META_KEY) || {};
-        let localUpdatedAt = Number(meta0.updatedAt) || (initial.migrated ? Date.now() : 0);
+        let localUpdatedAt = Number(meta0.updatedAt) || (initial.migrated ? 1 : 0);
         let localUid = meta0.uid || '';
-        let cloud = null, syncTimer = null, pendingSave = false, snapCount = 0;
+        let cloud = null, syncTimer = null, pendingSave = false, snapCount = 0, firstSync = false;
         const deviceId = (() => {
             try {
                 let id = localStorage.getItem('2026_money_device_id');
@@ -567,7 +573,7 @@
         })();
         const saveMeta = () => safeSet(META_KEY, { updatedAt: localUpdatedAt, uid: localUid });
         function markChanged() {            // 사용자가 바꾼 경우에만 호출
-            localUpdatedAt = Date.now();
+            localUpdatedAt = Math.max(Date.now(), localUpdatedAt + 1);   // 기기 시계가 달라도 방금 수정이 항상 최신
             saveMeta();
             scheduleCloudSave();
         }
@@ -646,8 +652,15 @@
             }
         }
         function scrollActiveMonth(smooth) {
-            const btn = $('month-slider').querySelector(`[data-month="${currentMonth}"]`);
-            if (btn) btn.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', inline: 'center', block: 'nearest' });
+            const slider = $('month-slider');
+            const btn = slider.querySelector(`[data-month="${currentMonth}"]`);
+            if (!btn || !slider.clientWidth) return;
+            const sr = slider.getBoundingClientRect(), br = btn.getBoundingClientRect();
+            const left = slider.scrollLeft + (br.left - sr.left) - (slider.clientWidth - br.width) / 2;
+            if (smooth) { slider.scrollTo({ left, behavior: 'smooth' }); return; }
+            slider.style.scrollBehavior = 'auto';
+            slider.scrollLeft = left;
+            slider.style.scrollBehavior = '';
         }
         function selectMonth(month) {
             if (month < 1) month = 12;
@@ -757,21 +770,35 @@
         }
 
         // ---------- 모달 공통 (포커스 이동/복귀, Esc, 포커스 가두기) ----------
+        let savedScrollY = 0;
+        function lockScroll() {
+            if (document.body.style.position === 'fixed') return;
+            savedScrollY = window.scrollY;
+            Object.assign(document.body.style, { position: 'fixed', top: `-${savedScrollY}px`, left: '0', right: '0', width: '100%' });
+        }
+        function unlockScroll() {
+            if (document.body.style.position !== 'fixed') return;
+            Object.assign(document.body.style, { position: '', top: '', left: '', right: '', width: '' });
+            window.scrollTo(0, savedScrollY);
+        }
         function showModal(id) {
             const m = $(id);
             m._opener = document.activeElement;
+            lockScroll();
             m.classList.remove('hidden');
             m.classList.add('flex');
+            if (IS_TOUCH) return;                  // 폰에서는 자동 포커스(키보드·확대) 없이 열기
             const f = m.querySelector('[data-autofocus]') || m.querySelector('input:not([type=hidden]),select,button');
-            if (f) setTimeout(() => f.focus(), 30);
+            if (f) setTimeout(() => f.focus({ preventScroll: true }), 30);
         }
         function hideModal(id) {
             const m = $(id);
             if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
             m.classList.add('hidden');
             m.classList.remove('flex');
+            if (!anyModalOpen()) unlockScroll();
             const o = m._opener;
-            if (o && document.contains(o) && typeof o.focus === 'function') o.focus();
+            if (!IS_TOUCH && o && document.contains(o) && typeof o.focus === 'function') o.focus({ preventScroll: true });
             m._opener = null;
         }
 
@@ -1107,18 +1134,31 @@
             renderMonthCategories();
             if (announce) showToast('다른 기기에서 바꾼 내용을 반영했어요');
         }
+        function finishFirstSync() {
+            firstSync = false;
+            if (cloud && cloud.user) { localUid = cloud.user.uid; saveMeta(); }
+        }
         function onCloudSnapshot(snap) {
             const md = snap.metadata;
             snapCount++;
             if (md.hasPendingWrites) { setSyncStatus('saving'); return; }   // 내 변경이 서버에 올라가는 중
+            if (pendingSave) { setSyncStatus('saving'); return; }           // 아직 안 보낸 수정이 있으면 덮어쓰지 않음 (곧 내 데이터가 올라감)
             const online = navigator.onLine;
             if (!snap.exists()) {
                 if (md.fromCache) { setSyncStatus(online ? 'connecting' : 'offline'); return; }
+                finishFirstSync();
                 pushToCloud();               // 클라우드가 비어 있으면 이 기기 데이터를 올림
                 return;
             }
             const d = snap.data();
             const remoteAt = Number(d.updatedAt) || 0;
+            if (firstSync) {                 // 이 기기에서 이 계정으로 처음 동기화 → 클라우드 데이터를 기준으로
+                if (md.fromCache) { setSyncStatus(navigator.onLine ? 'connecting' : 'offline'); return; }
+                finishFirstSync();
+                applyRemote(d, false);
+                setSyncStatus('synced');
+                return;
+            }
             if (remoteAt > localUpdatedAt) {
                 applyRemote(d, snapCount > 1 && d.deviceId !== deviceId);
             } else if (remoteAt < localUpdatedAt && !md.fromCache) {
@@ -1166,8 +1206,7 @@
                 updateAnnualDashboard();
                 renderMonthCategories();
             }
-            localUid = user.uid;
-            saveMeta();
+            firstSync = localUid !== user.uid;      // 계정 기록은 첫 동기화가 끝난 뒤 저장
             setSyncStatus('connecting');
             cloud.ref = cloud.fsM.doc(cloud.db, 'users', user.uid, 'apps', 'money2026');
             cloud.unsub = cloud.fsM.onSnapshot(cloud.ref, { includeMetadataChanges: true }, onCloudSnapshot,
@@ -1235,7 +1274,12 @@
             renderMonthCategories();
             scrollActiveMonth(false);
 
-            window.addEventListener('resize', fitAnnual);
+            let lastW = window.innerWidth;
+            window.addEventListener('resize', () => {           // 주소창·키보드로 높이만 바뀔 땐 무시
+                if (window.innerWidth === lastW) return;
+                lastW = window.innerWidth;
+                fitAnnual();
+            });
             if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitAnnual);
 
             // 로그인 화면 (로그인 성공 전에는 메인 화면을 보여주지 않음)
@@ -1390,21 +1434,25 @@
                 else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
             });
 
-            // 키보드가 올라와도 입력창이 가려지지 않도록
-            document.addEventListener('focusin', e => {
-                if (e.target.matches && e.target.matches('input,select')) {
-                    setTimeout(() => e.target.scrollIntoView({ block: 'center', behavior: 'smooth' }), 300);
-                }
-            });
-
-            // 모바일 스와이프로 월 이동
-            let sx = 0, sy = 0;
+            // 모바일 스와이프로 월 이동 (한 손가락·빠른 가로 스와이프만, 확대 중이거나 팝업이 열려 있으면 무시)
+            let sw = null;
             const mainArea = $('month-content-area');
-            mainArea.addEventListener('touchstart', e => { sx = e.changedTouches[0].screenX; sy = e.changedTouches[0].screenY; }, { passive: true });
+            mainArea.addEventListener('touchstart', e => {
+                if (e.touches.length !== 1 || anyModalOpen()) { sw = null; return; }
+                const t = e.touches[0];
+                sw = { x: t.clientX, y: t.clientY, at: Date.now() };
+            }, { passive: true });
+            mainArea.addEventListener('touchmove', e => { if (e.touches.length > 1) sw = null; }, { passive: true });
+            mainArea.addEventListener('touchcancel', () => { sw = null; }, { passive: true });
             mainArea.addEventListener('touchend', e => {
-                const dx = e.changedTouches[0].screenX - sx;
-                const dy = e.changedTouches[0].screenY - sy;
-                if (Math.abs(dx) > 65 && Math.abs(dx) > Math.abs(dy) * 1.5) selectMonth(currentMonth + (dx < 0 ? 1 : -1));
+                const s0 = sw;
+                sw = null;
+                if (!s0 || e.touches.length > 0 || anyModalOpen()) return;
+                if (window.visualViewport && window.visualViewport.scale > 1.05) return;   // 화면 확대 중 이동은 무시
+                if (Date.now() - s0.at > 600) return;                                      // 느린 드래그는 무시
+                const t = e.changedTouches[0];
+                const dx = t.clientX - s0.x, dy = t.clientY - s0.y;
+                if (Math.abs(dx) > 80 && Math.abs(dx) > Math.abs(dy) * 2) selectMonth(currentMonth + (dx < 0 ? 1 : -1));
             }, { passive: true });
         });
 
