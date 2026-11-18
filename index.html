@@ -2,8 +2,8 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <!-- 확대는 막지 않음(두 손가락 확대 가능). 입력칸 자동 확대는 아래 CSS에서 폰 입력칸 글씨를 16px로 해서 막음 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <script>(function(){var u=navigator.userAgent,ios=/iP(hone|ad|od)/.test(u)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);if(ios){var m=document.querySelector("meta[name=viewport]");m.setAttribute("content",m.getAttribute("content")+", maximum-scale=1");}})();</script>
     <title>2026 Money - 귀여운 파스텔 연간 예산 기록</title>
     <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -52,11 +52,21 @@
         .cute-chip { transition: transform .2s cubic-bezier(0.34,1.56,0.64,1); }
         .cute-chip:hover { transform: translateY(-2px) rotate(-1deg); }
         html { scrollbar-gutter: stable; }
-        html.scroll-locked, html.scroll-locked body { overflow: hidden; }
+        /* 빠르게 두 번 누르면 '확대'로 인식해 탭이 씹히는 것 방지 */
+        button, label, a, input, select, textarea, [role="button"] { touch-action: manipulation; }
+        /* 팝업 바깥(어두운 배경): 키보드로 화면이 좁아지면 '팝업 바깥 레이어 안에서만' 스크롤, 뒤 화면으로 스크롤이 넘어가지 않게 */
+        #add-item-modal, #account-manager-modal, #delete-confirm-modal { padding-top: max(1.25rem, env(safe-area-inset-top)); -webkit-overflow-scrolling: touch; }
+        /* 팝업이 열려 있는 동안 뒤 화면(body)을 현재 위치에 고정 → 키보드가 올라와도 뒤 화면이 스크롤되지 않아 위아래로 튕기지 않음 (top 값은 JS에서 넣음) */
+        body.modal-locked { position: fixed; left: 0; right: 0; overflow: hidden; }
+        /* 아이폰은 글씨가 16px보다 작은 입력칸을 누르면 화면을 자동 확대함 → 자동 확대 → 키보드 → 축소가 반복되며 튕기는 원인
+           터치 기기에서만 입력칸 글씨를 16px로 맞춰 자동 확대를 없앰 (확대 금지 설정 없이 해결 → 안드로이드 두 손가락 확대 유지) */
+        @media (pointer: coarse) { input, select, textarea { font-size: 16px !important; } }
+        /* 확인창이 다른 팝업 위에 겹쳐 뜨면 어두운 배경이 두 번 겹치지 않게 확인창 배경은 투명하게 */
+        #add-item-modal.flex ~ #delete-confirm-modal, #account-manager-modal.flex ~ #delete-confirm-modal { background-color: transparent; }
         #item-amount.is-auto { background: #F6F0FA; color: #6B6278; cursor: default; }
-        [role="dialog"] > .modal-head { position: sticky; top: -1.25rem; z-index: 5; background: #fff; margin: -1.25rem -1.25rem .875rem; padding: 1.25rem 1.25rem .5rem; }
-        @media (min-width: 640px) { [role="dialog"] > .modal-head { top: -1.5rem; margin: -1.5rem -1.5rem .875rem; padding: 1.5rem 1.5rem .5rem; } }
-        #add-item-modal.kb-space, #account-manager-modal.kb-space { padding-bottom: 60vh; }
+        /* 팝업 제목줄: 팝업이 길어 바깥 레이어가 스크롤될 때 위에 붙어 있게 (노치 영역 피함) */
+        [role="dialog"] > .modal-head { position: sticky; top: calc(env(safe-area-inset-top, 0px) - 1.25rem); z-index: 5; background: #fff; border-radius: calc(1.5rem - 2px) calc(1.5rem - 2px) 0 0; margin: -1.25rem -1.25rem .875rem; padding: 1.25rem 1.25rem .5rem; }
+        @media (min-width: 640px) { [role="dialog"] > .modal-head { top: calc(env(safe-area-inset-top, 0px) - 1.5rem); margin: -1.5rem -1.5rem .875rem; padding: 1.5rem 1.5rem .5rem; } }
     </style>
 </head>
 <body class="text-pastel-text font-sans min-h-screen pb-16 selection:bg-pastel-pink selection:text-pastel-text overflow-x-hidden">
@@ -215,8 +225,8 @@
     </div>
 
     <!-- 소분류 항목 추가/수정 모달 -->
-    <div id="add-item-modal" class="fixed inset-0 z-50 hidden items-start justify-center bg-black/40 overflow-y-auto overscroll-contain p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-        <div role="dialog" aria-modal="true" aria-labelledby="modal-title" class="bg-white rounded-3xl w-full max-w-[340px] sm:max-w-md p-5 sm:p-6 shadow-2xl border-2 border-pastel-pink max-h-[calc(100dvh-2.5rem)] overflow-y-auto overscroll-contain">
+    <div id="add-item-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 overflow-y-auto overscroll-contain p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        <div role="dialog" aria-modal="true" aria-labelledby="modal-title" class="bg-white rounded-3xl w-full max-w-[340px] sm:max-w-md p-5 sm:p-6 shadow-2xl border-2 border-pastel-pink my-auto">
             <div class="modal-head flex items-center justify-between mb-3.5">
                 <div class="flex items-center gap-2">
                     <span id="modal-category-icon" class="w-8 h-8 rounded-full flex items-center justify-center text-lg bg-pastel-pink/40 text-pastel-pinkDark"></span>
@@ -291,8 +301,8 @@
     </div>
 
     <!-- 내 통장 관리 모달 -->
-    <div id="account-manager-modal" class="fixed inset-0 z-50 hidden items-start justify-center bg-black/40 overflow-y-auto overscroll-contain p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-        <div role="dialog" aria-modal="true" aria-labelledby="account-modal-title" class="bg-white rounded-3xl w-full max-w-[350px] sm:max-w-md p-5 sm:p-6 shadow-2xl border-2 border-pastel-purple max-h-[calc(100dvh-2.5rem)] overflow-y-auto overscroll-contain">
+    <div id="account-manager-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 overflow-y-auto overscroll-contain p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        <div role="dialog" aria-modal="true" aria-labelledby="account-modal-title" class="bg-white rounded-3xl w-full max-w-[350px] sm:max-w-md p-5 sm:p-6 shadow-2xl border-2 border-pastel-purple my-auto">
             <div class="modal-head flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2">
                     <i data-ic="bank" class="text-xl text-pastel-purpleDark"></i>
@@ -338,7 +348,7 @@
 
     <!-- 삭제 확인 모달 -->
     <div id="delete-confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 overflow-y-auto overscroll-contain p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-        <div role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" class="bg-white rounded-3xl w-full max-w-[330px] p-5 sm:p-6 shadow-2xl border-2 border-pastel-pink text-center my-auto max-h-[calc(100dvh-2.5rem)] overflow-y-auto overscroll-contain">
+        <div role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" class="bg-white rounded-3xl w-full max-w-[330px] p-5 sm:p-6 shadow-2xl border-2 border-pastel-pink text-center my-auto">
             <div class="w-12 h-12 rounded-full bg-pastel-pink/40 text-pastel-pinkDark flex items-center justify-center mx-auto mb-3 text-2xl">
                 <i data-ic="alert" class=""></i>
             </div>
@@ -401,7 +411,7 @@
                 }
             }
         };
-        const CUSTOM_CLASSES = new Set(['no-scrollbar', 'transition-bounce', 'cute-chip', 'is-auto', 'month-fit', 'scroll-locked', 'modal-head', 'kb-space', 'peer', 'group']);
+        const CUSTOM_CLASSES = new Set(['no-scrollbar', 'transition-bounce', 'cute-chip', 'is-auto', 'month-fit', 'modal-locked', 'modal-head', 'peer', 'group']);
         let knownClassSet = null, twLoading = false;
         function collectKnownClasses() {
             const set = new Set();
@@ -933,70 +943,41 @@
         }
 
         // ---------- 모달 공통 (포커스 이동/복귀, Esc, 포커스 가두기) ----------
-        // 팝업이 열려 있는 동안 뒤 화면 스크롤만 잠금 (페이지 위치·폭을 건드리지 않아 흔들림 없음)
-        const IOS_MAJOR = (() => { const m = navigator.userAgent.match(/OS (\d+)_\d+(?:_\d+)? like Mac OS X/); return m ? Number(m[1]) : 0; })();
-        const LEGACY_IOS = IOS_MAJOR > 0 && IOS_MAJOR < 16;
-        let savedScrollY = 0, restoreTimer = null;
-        function lockScroll() {
-            const root = document.documentElement;
-            if (root.classList.contains('scroll-locked')) return;
-            clearTimeout(restoreTimer);
-            savedScrollY = window.scrollY;
-            root.classList.add('scroll-locked');
-            if (LEGACY_IOS) {                  // iOS 15 이하는 overflow 잠금이 안 먹어서 화면을 고정하는 방식 사용
-                Object.assign(document.body.style, { position: 'fixed', top: `-${savedScrollY}px`, left: '0', right: '0', width: '100%' });
+        // 팝업이 하나라도 열려 있으면 뒤 화면(body)을 지금 보던 위치에 고정하고, 모두 닫히면 고정을 풀고 원래 위치로 돌아감.
+        // 아이폰은 키보드가 올라올 때 입력칸을 보이게 하려고 뒤 화면을 스크롤하는데, body가 고정돼 있으면 뒤 화면이 움직이지 않아 튕기지 않음.
+        let lockedScrollY = 0;
+        function updateBodyLock() {
+            const body = document.body;
+            const open = anyModalOpen(), locked = body.classList.contains('modal-locked');
+            if (open && !locked) {
+                lockedScrollY = window.scrollY;               // 지금 보던 위치 기억
+                body.style.top = `-${lockedScrollY}px`;       // 그 위치 그대로 고정
+                body.classList.add('modal-locked');
+            } else if (!open && locked) {
+                body.classList.remove('modal-locked');
+                body.style.top = '';
+                window.scrollTo(0, lockedScrollY);            // 원래 위치로 복귀
             }
-        }
-        function unlockScroll() {
-            document.documentElement.classList.remove('scroll-locked');
-            if (LEGACY_IOS) Object.assign(document.body.style, { position: '', top: '', left: '', right: '', width: '' });
-            const y = savedScrollY;
-            const restore = () => { if (!anyModalOpen() && Math.abs(window.scrollY - y) > 1) window.scrollTo(0, y); };
-            restore();
-            requestAnimationFrame(restore);
-            clearTimeout(restoreTimer);
-            restoreTimer = setTimeout(restore, 400);     // 키보드가 내려가며 화면이 다시 움직이는 경우까지 보정
-        }
-        const panelOf = m => m.querySelector('[role="dialog"],[role="alertdialog"]');
-        // ---------- 키보드 대응 (팝업을 직접 움직이지 않음) ----------
-        // 입력칸이 있는 팝업은 위쪽 기준으로 열고, 칸을 누르면 팝업 아래에 여유 공간을 붙여 둠.
-        // → 사파리가 스스로 팝업 안을 스크롤해 칸을 키보드 위로 보여줄 수 있음 (사파리 동작과 부딪히지 않음)
-        const KB_MODALS = ['add-item-modal', 'account-manager-modal'];
-        const inputModalOf = el => (el && el.matches && el.matches('input,select,textarea'))
-            ? KB_MODALS.map($).find(m => m && !m.classList.contains('hidden') && m.contains(el)) : null;
-        let kbOffTimer = null;
-        function placeInputModal(m) {          // 열 때 한 번만: 가운데쯤 보이게 위쪽 여백을 정해 고정 (이후 키보드가 올라와도 위치 계산 없음)
-            const panel = panelOf(m);
-            if (!panel) return;
-            panel.style.marginTop = '0';
-            const cs = getComputedStyle(m);
-            const free = m.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - panel.offsetHeight;
-            panel.style.marginTop = `${Math.max(0, Math.floor(free / 2))}px`;
         }
         function showModal(id) {
             const m = $(id);
             m._opener = document.activeElement;
-            lockScroll();
             m.classList.remove('hidden');
             m.classList.add('flex');
-            if (KB_MODALS.includes(id)) { m.scrollTop = 0; placeInputModal(m); }
+            updateBodyLock();
             if (IS_TOUCH) return;                  // 폰에서는 자동 포커스(키보드·확대) 없이 열기
             const f = m.querySelector('[data-autofocus]') || m.querySelector('input:not([type=hidden]),select,button');
-            if (f) setTimeout(() => f.focus({ preventScroll: true }), 30);
+            setTimeout(() => f.focus({ preventScroll: true }), 30);     // 모든 팝업에 버튼이 있어 f는 항상 존재
         }
         function hideModal(id) {
             const m = $(id);
-            if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+            document.activeElement.blur();         // 키보드 내림
             m.classList.add('hidden');
             m.classList.remove('flex');
-            m.classList.remove('kb-space');
-            m.scrollTop = 0;
-            if (!anyModalOpen()) {
-                unlockScroll();
-                if (reconnectWanted) { reconnectWanted = false; setTimeout(tryReconnect, 300); }
-            }
+            updateBodyLock();
+            if (!anyModalOpen() && reconnectWanted) { reconnectWanted = false; setTimeout(tryReconnect, 300); }
             const o = m._opener;
-            if (!IS_TOUCH && o && document.contains(o) && typeof o.focus === 'function') o.focus({ preventScroll: true });
+            if (!IS_TOUCH && o && document.contains(o)) o.focus({ preventScroll: true });
             m._opener = null;
         }
 
@@ -1966,32 +1947,6 @@
                 const first = f[0], last = f[f.length - 1];
                 if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
                 else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-            });
-
-            // 팝업 입력칸이 키보드에 가리지 않게: 칸을 누르면 팝업 아래에 여유 공간만 붙이고, 이동은 사파리에 맡김
-            document.addEventListener('focusin', e => {
-                const m = inputModalOf(e.target);
-                if (!m) return;
-                clearTimeout(kbOffTimer);
-                m.classList.add('kb-space');
-                // 사파리가 올려 주지 못해 칸이 여전히 가려져 있을 때만, 팝업 안을 한 번 부드럽게 스크롤 (팝업 자체는 움직이지 않음)
-                setTimeout(() => {
-                    if (document.activeElement !== e.target || !window.visualViewport) return;
-                    const vv = window.visualViewport, r = e.target.getBoundingClientRect();
-                    const limit = vv.offsetTop + vv.height - 12;
-                    if (vv.height < window.innerHeight - 80 && r.bottom > limit) m.scrollBy({ top: Math.round(r.bottom - limit), behavior: 'smooth' });
-                }, 450);
-            });
-            document.addEventListener('focusout', () => {
-                clearTimeout(kbOffTimer);
-                kbOffTimer = setTimeout(() => {           // 다른 칸으로 옮겨 간 게 아니라면(키보드 내림) 여유 공간 정리
-                    if (inputModalOf(document.activeElement)) return;
-                    KB_MODALS.map($).forEach(m => {
-                        if (!m || !m.classList.contains('kb-space')) return;
-                        if (m.scrollTop > 0) m.scrollTo({ top: 0, behavior: 'smooth' });
-                        setTimeout(() => { if (!inputModalOf(document.activeElement)) m.classList.remove('kb-space'); }, 400);
-                    });
-                }, 200);
             });
 
             // 모바일 스와이프로 월 이동 (한 손가락·빠른 가로 스와이프만, 확대 중이거나 팝업이 열려 있으면 무시)
