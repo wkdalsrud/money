@@ -55,7 +55,7 @@
         /* 빠르게 두 번 누르면 '확대'로 인식해 탭이 씹히는 것 방지 */
         button, label, a, input, select, textarea, [role="button"] { touch-action: manipulation; }
         /* 팝업 바깥(어두운 배경): 키보드로 화면이 좁아지면 '팝업 바깥 레이어 안에서만' 스크롤, 뒤 화면으로 스크롤이 넘어가지 않게 */
-        #add-item-modal, #account-manager-modal, #delete-confirm-modal { padding-top: max(1.25rem, env(safe-area-inset-top)); -webkit-overflow-scrolling: touch; }
+        #add-item-modal, #account-manager-modal, #account-detail-modal, #delete-confirm-modal { padding-top: max(1.25rem, env(safe-area-inset-top)); -webkit-overflow-scrolling: touch; }
         /* 팝업이 열려 있는 동안 뒤 화면(body)을 현재 위치에 고정 → 키보드가 올라와도 뒤 화면이 스크롤되지 않아 위아래로 튕기지 않음 (top 값은 JS에서 넣음) */
         body.modal-locked { position: fixed; left: 0; right: 0; overflow: hidden; }
         /* 아이폰은 글씨가 16px보다 작은 입력칸을 누르면 화면을 자동 확대함 → 자동 확대 → 키보드 → 축소가 반복되며 튕기는 원인
@@ -346,6 +346,22 @@
         </div>
     </div>
 
+    <!-- 통장 상세 모달 (이 통장을 고른 카테고리·항목) -->
+    <div id="account-detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 overflow-y-auto overscroll-contain p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        <div role="dialog" aria-modal="true" aria-labelledby="account-detail-title" class="bg-white rounded-3xl w-full max-w-[350px] sm:max-w-md p-5 sm:p-6 shadow-2xl border-2 border-pastel-purple my-auto">
+            <div class="modal-head flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2 min-w-0">
+                    <i data-ic="bank" class="text-xl text-pastel-purpleDark"></i>
+                    <h3 id="account-detail-title" class="font-cute text-lg sm:text-xl text-pastel-text truncate">통장</h3>
+                </div>
+                <button id="close-account-detail-btn" type="button" aria-label="닫기" class="w-8 h-8 shrink-0 rounded-full bg-pastel-bg hover:bg-pastel-purple/40 text-pastel-subtext flex items-center justify-center transition-colors">
+                    <i data-ic="x" class=""></i>
+                </button>
+            </div>
+            <div id="account-detail-body"></div>
+        </div>
+    </div>
+
     <!-- 삭제 확인 모달 -->
     <div id="delete-confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 overflow-y-auto overscroll-contain p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
         <div role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" class="bg-white rounded-3xl w-full max-w-[330px] p-5 sm:p-6 shadow-2xl border-2 border-pastel-pink text-center my-auto">
@@ -436,7 +452,7 @@
             document.head.appendChild(sc);
         }
         const IS_TOUCH = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
-        const MODAL_IDS = ['add-item-modal', 'account-manager-modal', 'delete-confirm-modal'];
+        const MODAL_IDS = ['add-item-modal', 'account-manager-modal', 'account-detail-modal', 'delete-confirm-modal'];
         const anyModalOpen = () => MODAL_IDS.some(id => { const m = $(id); return m && !m.classList.contains('hidden'); });
 
         // ---------- 아이콘 (인라인 SVG: 외부 아이콘 라이브러리가 필요 없어요) ----------
@@ -475,29 +491,30 @@
         }
 
         // 카테고리 메타데이터 (수입 - 저축 - 고정지출 - 카드대금 - 변동지출 - 비상금)
+        // flow: 통장별 현황 기준 — 수입만 'in'(메인 통장으로 들어오는 돈), 나머지는 전부 'out'(그 통장에서 쓰거나 그 통장으로 보내는 돈)
         // 버튼 색은 흰 글씨 대비 4.5:1 이상이 되도록 진한 색 사용
         const CATEGORIES = [
-            { id: 'income', name: '수입', icon: 'dollar', type: 'income', accountLabel: '입금 통장',
+            { id: 'income', name: '수입', icon: 'dollar', type: 'income', flow: 'in', accountLabel: '입금 통장',
               iconClass: 'bg-blue-100 text-blue-700',
               bgClass: 'bg-gradient-to-br from-pastel-blue/35 to-white', borderClass: 'border-pastel-blue',
               badgeClass: 'bg-pastel-blue/60 text-blue-900', btnClass: 'bg-pastel-blue hover:bg-[#A9D5FD] text-blue-900 border border-pastel-blueDark/40' },
-            { id: 'saving', name: '저축', icon: 'piggy', type: 'saving', accountLabel: '입금 통장',
+            { id: 'saving', name: '저축', icon: 'piggy', type: 'saving', flow: 'out', accountLabel: '입금 통장',
               iconClass: 'bg-emerald-100 text-emerald-700',
               bgClass: 'bg-gradient-to-br from-pastel-mint/45 to-white', borderClass: 'border-pastel-mintDark/40',
               badgeClass: 'bg-pastel-mint text-emerald-900', btnClass: 'bg-pastel-mint hover:bg-[#A8F0B3] text-emerald-900 border border-pastel-mintDark/40' },
-            { id: 'fixed', name: '고정지출', icon: 'home', type: 'expense', accountLabel: '출금 통장',
+            { id: 'fixed', name: '고정지출', icon: 'home', type: 'expense', flow: 'out', accountLabel: '출금 통장',
               iconClass: 'bg-rose-100 text-rose-700',
               bgClass: 'bg-gradient-to-br from-pastel-pink/35 to-white', borderClass: 'border-pastel-pink',
               badgeClass: 'bg-pastel-pink/60 text-rose-900', btnClass: 'bg-pastel-pink hover:bg-[#FFC4D3] text-rose-900 border border-pastel-pinkDark/50' },
-            { id: 'card', name: '카드대금', icon: 'card', type: 'expense', accountLabel: '출금 통장',
+            { id: 'card', name: '카드대금', icon: 'card', type: 'expense', flow: 'out', accountLabel: '출금 통장',
               iconClass: 'bg-purple-100 text-purple-700',
               bgClass: 'bg-gradient-to-br from-pastel-purple/35 to-white', borderClass: 'border-pastel-purple',
               badgeClass: 'bg-pastel-purple/60 text-purple-900', btnClass: 'bg-pastel-purple hover:bg-[#D7B3FF] text-purple-900 border border-pastel-purpleDark/40' },
-            { id: 'variable', name: '변동지출', icon: 'bag', type: 'expense', accountLabel: '출금 통장',
+            { id: 'variable', name: '변동지출', icon: 'bag', type: 'expense', flow: 'out', accountLabel: '출금 통장',
               iconClass: 'bg-orange-100 text-orange-700',
               bgClass: 'bg-gradient-to-br from-pastel-peach/45 to-white', borderClass: 'border-pastel-peach',
               badgeClass: 'bg-pastel-peach/70 text-orange-900', btnClass: 'bg-pastel-peach hover:bg-[#FFCAA6] text-orange-900 border border-pastel-peachDark/40' },
-            { id: 'emergency', name: '비상금', icon: 'lifebuoy', type: 'saving', accountLabel: '입금 통장',
+            { id: 'emergency', name: '비상금', icon: 'lifebuoy', type: 'saving', flow: 'out', accountLabel: '입금 통장',
               iconClass: 'bg-amber-100 text-amber-700',
               bgClass: 'bg-gradient-to-br from-pastel-yellow/55 to-white', borderClass: 'border-pastel-yellowDark/40',
               badgeClass: 'bg-pastel-yellow text-amber-900', btnClass: 'bg-pastel-yellow hover:bg-[#FFEA8C] text-amber-900 border border-pastel-yellowDark/40' }
@@ -551,7 +568,6 @@
         const safeId = (v, p) => (typeof v === 'string' && /^[\w-]{1,60}$/.test(v)) ? v : uid(p);
         const clampAmount = n => Math.min(MAX_AMOUNT, Math.max(0, Math.floor(Number(n) || 0)));
         const formatCurrency = n => (Number(n) || 0).toLocaleString('ko-KR') + '원';
-        const formatSigned = n => (n < 0 ? '-' : '+') + Math.abs(n).toLocaleString('ko-KR') + '원';
         const sumItems = items => (items || []).reduce((a, c) => a + (Number(c.amount) || 0), 0);
         function parseAmountValue(raw) {
             const d = String(raw || '').replace(/[^\d]/g, '').slice(0, 12);
@@ -835,43 +851,94 @@
             scrollActiveMonth(true);
         }
 
-        // ---------- 통장별 현황 (입금 = 수입·저축 / 출금 = 지출, 월 요약과 같은 기준) ----------
+        // ---------- 통장별 현황 (통장마다 수입은 +, 지출·저축·비상금 합계는 −) ----------
+        // 그 달에 이 통장을 고른 항목을 카테고리별로 묶음 (항목이 있는 카테고리만)
+        function accountGroups(month, accId) {
+            const d = budgetData[month] || {};
+            return CATEGORIES.map(cat => {
+                const items = (d[cat.id] || []).filter(it => it.accountId === accId);
+                return { cat, items, total: sumItems(items) };
+            }).filter(g => g.items.length);
+        }
+        function accountFlow(groups) {
+            let inSum = 0, outSum = 0;
+            groups.forEach(g => { if (g.cat.flow === 'out') outSum += g.total; else inSum += g.total; });
+            return { in: inSum, out: outSum };
+        }
+        const won = n => `${n.toLocaleString('ko-KR')}원`;
+        // 금액 표시: 수입이 있으면 +수입, 나가는 돈은 −합계 (둘 다 없으면 0원)
+        function flowAmounts(f) {
+            const parts = [];
+            if (f.in) parts.push(`<span class="text-blue-700">+${won(f.in)}</span>`);
+            if (f.out || !f.in) parts.push(`<span class="${f.out ? 'text-rose-700' : 'text-pastel-subtext'}">${f.out ? '-' : ''}${won(f.out)}</span>`);
+            return parts.join('');
+        }
         function renderAccountSummary() {
             $('account-summary-month').textContent = `${currentMonth}월`;
             const container = $('account-summary-list');
             container.innerHTML = '';
             if (accountsList.length === 0) {
                 container.innerHTML = `<p class="text-[13px] sm:text-sm text-pastel-subtext col-span-full py-2 text-center">등록된 통장이 없어요. '통장 편집'에서 추가해 보세요!</p>`;
-                return;
             }
-            const map = {};
-            accountsList.forEach(a => { map[a.id] = { in: 0, out: 0 }; });
-            CATEGORIES.forEach(cat => {
-                (budgetData[currentMonth][cat.id] || []).forEach(item => {
-                    const s = map[item.accountId];
-                    if (!s) return;
-                    const amt = Number(item.amount) || 0;
-                    if (cat.type === 'expense') s.out += amt; else s.in += amt;
-                });
-            });
             accountsList.forEach(acc => {
-                const { in: i, out: o } = map[acc.id];
-                const net = i - o;
-                const card = document.createElement('div');
-                card.className = 'bg-pastel-bg/90 rounded-xl px-3.5 py-3 border border-pastel-purple/40 flex flex-col justify-between gap-1.5';
+                const groups = accountGroups(currentMonth, acc.id);
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.dataset.acc = acc.id;
+                card.className = 'w-full text-left bg-pastel-bg/90 hover:bg-white rounded-xl px-3.5 py-3 border border-pastel-purple/40 flex flex-col justify-between gap-1.5 transition-colors';
                 card.innerHTML = `
-                    <div class="flex items-center justify-between gap-2">
+                    <div class="w-full flex items-center justify-between gap-2">
                         <span class="text-sm sm:text-base font-bold text-pastel-text flex items-center gap-1.5 min-w-0">
                             ${ic('bank','text-pastel-purpleDark text-base shrink-0')}<span class="truncate">${escapeHtml(acc.name)}</span>
                         </span>
-                        <span class="shrink-0 text-[13px] font-bold tabular-nums ${net < 0 ? 'text-rose-700' : 'text-emerald-700'}">${formatSigned(net)}</span>
+                        <span class="flex items-center gap-2 shrink-0 text-[13px] sm:text-sm font-bold tabular-nums">${flowAmounts(accountFlow(groups))}${ic('chevron-right','text-pastel-subtext/70')}</span>
                     </div>
-                    <div class="flex items-center justify-between gap-2 text-[13px] sm:text-sm pt-1 border-t border-pastel-purple/20 font-medium tabular-nums">
-                        <span class="text-blue-700">입금 +${i.toLocaleString('ko-KR')}원</span>
-                        <span class="text-rose-700">출금 -${o.toLocaleString('ko-KR')}원</span>
-                    </div>`;
+                    <div class="w-full truncate text-[13px] text-pastel-subtext pt-1 border-t border-pastel-purple/20">${groups.length ? groups.map(g => g.cat.name).join('·') : '항목 없음'}</div>`;
                 container.appendChild(card);
             });
+            if (!$('account-detail-modal').classList.contains('hidden')) renderAccountDetail();   // 열려 있으면 바뀐 데이터로 갱신
+        }
+
+        // ---------- 통장 상세 팝업 (이 통장을 고른 카테고리·항목) ----------
+        let detailAccountId = null;
+        function renderAccountDetail() {
+            const acc = accountsList.find(a => a.id === detailAccountId);
+            if (!acc) { closeAccountDetail(); return false; } // 동기화 등으로 통장이 사라졌으면 닫기
+            const groups = accountGroups(currentMonth, acc.id);
+            $('account-detail-title').textContent = `${currentMonth}월 · ${acc.name}`;
+            const flowBadge = out => out
+                ? '<span class="shrink-0 px-2 py-0.5 rounded-md bg-rose-100 text-rose-700 text-xs font-bold">출금</span>'
+                : '<span class="shrink-0 px-2 py-0.5 rounded-md bg-blue-100 text-blue-700 text-xs font-bold">입금</span>';
+            const summary = `<div class="flex items-center justify-between gap-2"><span class="text-pastel-subtext">이 달 합계</span><span class="flex items-center gap-2 font-bold">${flowAmounts(accountFlow(groups))}</span></div>`;
+            $('account-detail-body').innerHTML = `
+                <div class="space-y-1 bg-pastel-bg rounded-2xl px-3.5 py-3 mb-4 text-[13px] sm:text-sm font-medium tabular-nums">${summary}</div>
+                ${groups.length ? `<div class="space-y-3">${groups.map(g => `
+                    <section class="rounded-2xl border border-pastel-purple/40 px-3.5 py-3">
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <span class="flex items-center gap-2 min-w-0">
+                                <span class="w-8 h-8 rounded-full flex items-center justify-center text-lg ${g.cat.iconClass} shrink-0">${ic(g.cat.icon)}</span>
+                                <span class="truncate text-sm sm:text-base font-bold text-pastel-text">${g.cat.name}</span>
+                                ${flowBadge(g.cat.flow === 'out')}
+                            </span>
+                            <span class="shrink-0 text-sm sm:text-base font-bold tabular-nums text-pastel-text">${formatCurrency(g.total)}</span>
+                        </div>
+                        <ul class="space-y-1">${g.items.map(it => `
+                            <li class="flex items-center justify-between gap-2 text-[13px] sm:text-sm">
+                                <span class="min-w-0 truncate text-pastel-text">${escapeHtml(it.name)}</span>
+                                <span class="shrink-0 tabular-nums text-pastel-subtext">${formatCurrency(it.amount)}</span>
+                            </li>`).join('')}
+                        </ul>
+                    </section>`).join('')}</div>`
+                : `<p class="text-[13px] sm:text-sm text-pastel-subtext py-4 text-center">${currentMonth}월에 이 통장을 고른 항목이 없어요</p>`}`;
+            return true;
+        }
+        function openAccountDetail(accId) {
+            detailAccountId = accId;
+            if (renderAccountDetail()) showModal('account-detail-modal');   // 없는 통장이면 빈 팝업을 열지 않음
+        }
+        function closeAccountDetail() {
+            hideModal('account-detail-modal');
+            detailAccountId = null;
         }
 
         // ---------- 월 카테고리 카드 ----------
@@ -1756,6 +1823,11 @@
             $('modal-delete-btn').addEventListener('click', requestDeleteFromEdit);
             $('add-item-modal').addEventListener('click', e => { if (e.target.id === 'add-item-modal') requestCloseAddModal(); });
 
+            // 통장 상세 팝업 (통장별 현황의 통장 카드를 누르면 열림)
+            $('account-summary-list').addEventListener('click', e => { const b = e.target.closest('[data-acc]'); if (b) openAccountDetail(b.dataset.acc); });
+            $('close-account-detail-btn').addEventListener('click', closeAccountDetail);
+            $('account-detail-modal').addEventListener('click', e => { if (e.target.id === 'account-detail-modal') closeAccountDetail(); });
+
             // 통장 관리 모달
             $('open-account-manager-btn').addEventListener('click', openAccountManagerModal);
             $('close-account-modal-btn').addEventListener('click', requestCloseAccountManager);
@@ -1935,7 +2007,7 @@
             });
 
             // Esc로 닫기 + Tab 포커스 가두기
-            const CLOSERS = { 'delete-confirm-modal': cancelConfirm, 'add-item-modal': requestCloseAddModal, 'account-manager-modal': requestCloseAccountManager };
+            const CLOSERS = { 'delete-confirm-modal': cancelConfirm, 'add-item-modal': requestCloseAddModal, 'account-manager-modal': requestCloseAccountManager, 'account-detail-modal': closeAccountDetail };
             document.addEventListener('keydown', e => {
                 const openId = Object.keys(CLOSERS).find(id => !$(id).classList.contains('hidden'));
                 if (!openId) return;
