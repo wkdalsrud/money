@@ -321,7 +321,7 @@
             <div class="modal-head flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2 min-w-0">
                     <i data-ic="bank" class="text-xl text-pastel-purpleDark"></i>
-                    <h3 id="account-detail-title" class="font-cute text-lg sm:text-xl text-pastel-text truncate">통장</h3>
+                    <h3 id="account-detail-title" class="font-sans font-bold text-lg sm:text-xl text-pastel-text truncate">통장</h3>
                 </div>
                 <button id="close-account-detail-btn" type="button" aria-label="닫기" class="w-8 h-8 shrink-0 rounded-full bg-pastel-bg hover:bg-pastel-purple/40 text-pastel-subtext flex items-center justify-center transition-colors">
                     <i data-ic="x" class=""></i>
@@ -862,8 +862,8 @@
             const acc = accountsList.find(a => a.id === detailAccountId);
             if (!acc) { closeAccountDetail(); return false; } // 동기화 등으로 통장이 사라졌으면 닫기
             const groups = accountGroups(currentMonth, acc.id);
-            // 통장 이름은 내장 글꼴(자주 쓰는 글자만)을 건너뛰고 Jua 전체 글꼴로 → 한 이름 안에서 글꼴이 섞여 깨져 보이지 않게 (Jua를 못 받으면 이름 전체가 본문 글꼴)
-            $('account-detail-title').innerHTML = `${currentMonth}월<span style="font-family:Jua,'Noto Sans KR',sans-serif"> · ${escapeHtml(acc.name)}</span>`;
+            // 제목은 본문 글꼴(Noto Sans KR 굵게): 통장 카드에서 이미 쓰는 글꼴이라 팝업을 열 때 글꼴이 바뀌며 깜빡이지 않음
+            $('account-detail-title').textContent = `${currentMonth}월 · ${acc.name}`;
             const flowBadge = out => out
                 ? '<span class="shrink-0 px-2 py-0.5 rounded-md bg-rose-100 text-rose-700 text-xs font-bold">출금</span>'
                 : '<span class="shrink-0 px-2 py-0.5 rounded-md bg-blue-100 text-blue-700 text-xs font-bold">입금</span>';
