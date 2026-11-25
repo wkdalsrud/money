@@ -67,6 +67,34 @@
         /* 팝업 제목줄: 팝업이 길어 바깥 레이어가 스크롤될 때 위에 붙어 있게 (노치 영역 피함) */
         [role="dialog"] > .modal-head { position: sticky; top: calc(env(safe-area-inset-top, 0px) - 1.25rem); z-index: 5; background: #fff; border-radius: calc(1.5rem - 2px) calc(1.5rem - 2px) 0 0; margin: -1.25rem -1.25rem .875rem; padding: 1.25rem 1.25rem .5rem; }
         @media (min-width: 640px) { [role="dialog"] > .modal-head { top: calc(env(safe-area-inset-top, 0px) - 1.5rem); margin: -1.5rem -1.5rem .875rem; padding: 1.5rem 1.5rem .5rem; } }
+
+        /* ---------- 정돈된 스타일 (꾸밈은 줄이고 숫자가 잘 보이게) ---------- */
+        body { word-break: keep-all; overflow-wrap: anywhere; }   /* 한글이 단어 중간에서 끊기지 않게 */
+        .card-plain { background: #fff; border: 1px solid #F1E8EF; border-radius: 1.5rem; padding: 1rem; box-shadow: 0 4px 16px rgba(74, 68, 83, .05); }
+        @media (min-width: 640px) { .card-plain { padding: 1.25rem; } }
+        /* 월 요약 4칸 */
+        .sum-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+        @media (min-width: 640px) { .sum-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+        .sum-box { border-radius: 1rem; padding: .625rem .875rem .7rem; min-width: 0; }
+        .sum-box.is-income { background: #EEF6FF; }
+        .sum-box.is-expense { background: #FFF0F3; }
+        .sum-box.is-saving { background: #ECFAF0; }
+        .sum-box.is-remain { background: #FFF8E1; }
+        .sum-label { display: flex; align-items: center; gap: .375rem; font-size: 12.5px; font-weight: 500; color: #7A7186; white-space: nowrap; overflow: hidden; }
+        .sum-dot { width: 7px; height: 7px; border-radius: 9999px; flex-shrink: 0; }
+        .sum-val { display: block; margin-top: .125rem; white-space: nowrap; overflow: hidden; font-size: 1.125rem; line-height: 1.4; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+        @media (min-width: 640px) { .sum-val { font-size: 1.25rem; } }
+        /* 통장별 현황: 줄 목록 */
+        .acc-list { display: flex; flex-direction: column; }
+        .acc-row { display: flex; align-items: center; gap: .625rem; width: 100%; text-align: left; padding: .7rem .375rem; border-top: 1px solid #F3ECF7; border-radius: .625rem; transition: background-color .15s; }
+        .acc-row:first-child { border-top: 0; }
+        .acc-row:hover { background: #FBF7FD; }
+        /* 카테고리 카드 */
+        .cat-total { font-size: .9375rem; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .item-row { display: flex; align-items: center; justify-content: space-between; gap: .5rem; background: #FAF6FA; border-radius: .875rem; padding: .7rem .875rem; cursor: pointer; transition: background-color .15s; }
+        .item-row:hover { background: #F4EDF6; }
+        .item-amt { font-size: .9375rem; font-weight: 600; color: #4A4453; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .item-row.is-zero .item-amt { color: #B3AABD; font-weight: 500; }
     </style>
 </head>
 <body class="text-pastel-text font-sans min-h-screen pb-16 selection:bg-pastel-pink selection:text-pastel-text overflow-x-hidden">
@@ -138,50 +166,38 @@
         <!-- 4. 선택된 월의 요약 배너 & 6개 카테고리 카드 영역 -->
         <main id="month-content-area" class="touch-pan-y touch-pinch-zoom">
             <!-- 현재 선택된 월 타이틀 & 월별 미니 요약 -->
-            <div class="bg-white/80 backdrop-blur-sm rounded-2xl px-3.5 sm:px-5 py-3 mb-5 border border-pastel-pink/40 shadow-sm">
-                <div class="flex items-center gap-1 mb-2.5">
+            <div class="card-plain mb-5">
+                <div class="flex items-center gap-1 mb-3">
                     <span id="current-month-badge" class="font-cute text-lg sm:text-2xl text-pastel-pinkDark">1월</span>
                     <span class="font-cute text-base sm:text-xl text-pastel-text">예산 내역</span>
                 </div>
-                <!-- 2×2: 수입 | 지출 / 저축 | 남은 금액 -->
-                <div class="grid grid-cols-2 gap-2 sm:gap-3">
-                    <div class="cute-chip bg-gradient-to-r from-pastel-blue/70 to-[#EAF5FF] border-2 border-dashed border-pastel-blueDark/40 rounded-full pl-3 min-[360px]:pl-1.5 pr-3 py-1.5 flex items-center gap-2 min-w-0">
-                        <span class="hidden min-[360px]:flex shrink-0 w-8 h-8 rounded-full bg-white shadow-sm ring-2 ring-pastel-blue items-center justify-center text-base">💰</span>
-                        <div class="min-w-0 flex-1 leading-tight">
-                            <span class="block font-cute text-[13px] text-blue-800/80 truncate">이번 달 수입</span>
-                            <strong id="month-total-income" class="month-fit block whitespace-nowrap overflow-hidden text-sm sm:text-base font-black text-blue-900 tabular-nums">0원</strong>
-                        </div>
+                <!-- 2×2 (PC는 한 줄): 수입 | 지출 / 저축 | 남은 금액 -->
+                <div class="sum-grid">
+                    <div class="sum-box is-income">
+                        <span class="sum-label"><span class="sum-dot" style="background:#64A6BD"></span>이번 달 수입</span>
+                        <strong id="month-total-income" class="month-fit sum-val text-blue-900">0원</strong>
                     </div>
-                    <div class="cute-chip bg-gradient-to-r from-pastel-pink/80 to-[#FFF0F4] border-2 border-dashed border-pastel-pinkDark/40 rounded-full pl-3 min-[360px]:pl-1.5 pr-3 py-1.5 flex items-center gap-2 min-w-0" title="고정지출 + 카드대금 + 변동지출">
-                        <span class="hidden min-[360px]:flex shrink-0 w-8 h-8 rounded-full bg-white shadow-sm ring-2 ring-pastel-pink items-center justify-center text-base">💸</span>
-                        <div class="min-w-0 flex-1 leading-tight">
-                            <span class="block font-cute text-[13px] text-rose-800/80 truncate">이번 달 지출</span>
-                            <strong id="month-total-expense" class="month-fit block whitespace-nowrap overflow-hidden text-sm sm:text-base font-black text-rose-900 tabular-nums">0원</strong>
-                        </div>
+                    <div class="sum-box is-expense" title="고정지출 + 카드대금 + 변동지출">
+                        <span class="sum-label"><span class="sum-dot" style="background:#FF8FA3"></span>이번 달 지출</span>
+                        <strong id="month-total-expense" class="month-fit sum-val text-rose-900">0원</strong>
                     </div>
-                    <div class="cute-chip bg-gradient-to-r from-pastel-mint/80 to-[#EEFDF0] border-2 border-dashed border-pastel-mintDark/40 rounded-full pl-3 min-[360px]:pl-1.5 pr-3 py-1.5 flex items-center gap-2 min-w-0" title="비상금 + 저축">
-                        <span class="hidden min-[360px]:flex shrink-0 w-8 h-8 rounded-full bg-white shadow-sm ring-2 ring-pastel-mint items-center justify-center text-base">🐷</span>
-                        <div class="min-w-0 flex-1 leading-tight">
-                            <span class="block font-cute text-[13px] text-emerald-800/80 truncate">이번 달 저축</span>
-                            <strong id="month-total-saving" class="month-fit block whitespace-nowrap overflow-hidden text-sm sm:text-base font-black text-emerald-900 tabular-nums">0원</strong>
-                        </div>
+                    <div class="sum-box is-saving" title="비상금 + 저축">
+                        <span class="sum-label"><span class="sum-dot" style="background:#57CC99"></span>이번 달 저축</span>
+                        <strong id="month-total-saving" class="month-fit sum-val text-emerald-900">0원</strong>
                     </div>
-                    <div class="cute-chip bg-gradient-to-r from-pastel-yellow/90 to-[#FFFBE6] border-2 border-dashed border-pastel-yellowDark/40 rounded-full pl-3 min-[360px]:pl-1.5 pr-3 py-1.5 flex items-center gap-2 min-w-0">
-                        <span class="hidden min-[360px]:flex shrink-0 w-8 h-8 rounded-full bg-white shadow-sm ring-2 ring-pastel-yellow items-center justify-center text-base">✨</span>
-                        <div class="min-w-0 flex-1 leading-tight">
-                            <span class="block font-cute text-[13px] text-amber-800/90 truncate">수입−지출−저축</span>
-                            <strong id="month-total-remain" class="month-fit block whitespace-nowrap overflow-hidden text-sm sm:text-base font-black text-amber-900 tabular-nums">0원</strong>
-                        </div>
+                    <div class="sum-box is-remain" title="수입 − 지출 − 저축">
+                        <span class="sum-label"><span class="sum-dot" style="background:#E09F3E"></span>남은 금액</span>
+                        <strong id="month-total-remain" class="month-fit sum-val text-amber-900">0원</strong>
                     </div>
                 </div>
             </div>
 
             <!-- 🏦 통장별 입출금 요약 박스 -->
-            <div class="bg-white/85 backdrop-blur-sm rounded-2xl p-4 sm:p-5 mb-5 border border-pastel-purple/50 shadow-card">
+            <div class="card-plain mb-5">
                 <div id="account-summary-header" class="flex items-center justify-between">
                     <button type="button" id="toggle-account-summary-btn" aria-expanded="false" aria-controls="account-summary-list" class="font-cute text-base sm:text-lg text-pastel-text flex items-center gap-1.5 text-left"><i data-ic="wallet" class="text-pastel-purpleDark text-xl"></i><span><span id="account-summary-month">1월</span> 통장별 현황</span><span id="account-summary-chevron" class="inline-flex text-pastel-subtext transition-transform"><i data-ic="chevron-down"></i></span></button>
                 </div>
-                <div id="account-summary-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                <div id="account-summary-list" class="acc-list">
                     <!-- JS로 통장별 합계 카드 렌더링 -->
                 </div>
             </div>
@@ -827,7 +843,8 @@
         function flowAmounts(f) {
             const parts = [];
             if (f.in) parts.push(`<span class="text-blue-700">+${won(f.in)}</span>`);
-            if (f.out || !f.in) parts.push(`<span class="${f.out ? 'text-rose-700' : 'text-pastel-subtext'}">${f.out ? '-' : ''}${won(f.out)}</span>`);
+            if (f.out) parts.push(`<span class="text-rose-700">-${won(f.out)}</span>`);
+            if (!f.in && !f.out) parts.push('<span class="text-pastel-subtext font-medium">–</span>');
             return parts.join('');
         }
         function renderAccountSummary() {
@@ -842,15 +859,14 @@
                 const card = document.createElement('button');
                 card.type = 'button';
                 card.dataset.acc = acc.id;
-                card.className = 'w-full text-left bg-pastel-bg/90 hover:bg-white rounded-xl px-3.5 py-3 border border-pastel-purple/40 flex flex-col justify-between gap-1.5 transition-colors';
+                card.className = 'acc-row';
                 card.innerHTML = `
-                    <div class="w-full flex items-center justify-between gap-2">
-                        <span class="text-sm sm:text-base font-bold text-pastel-text flex items-center gap-1.5 min-w-0">
-                            ${ic('bank','text-pastel-purpleDark text-base shrink-0')}<span class="truncate">${escapeHtml(acc.name)}</span>
-                        </span>
-                        <span class="flex items-center gap-2 shrink-0 text-[13px] sm:text-sm font-bold tabular-nums">${flowAmounts(accountFlow(groups))}${ic('chevron-right','text-pastel-subtext/70')}</span>
-                    </div>
-                    <div class="w-full truncate text-[13px] text-pastel-subtext pt-1 border-t border-pastel-purple/20">${groups.length ? groups.map(g => g.cat.name).join('·') : '항목 없음'}</div>`;
+                    <span class="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">${ic('bank')}</span>
+                    <span class="min-w-0 flex-1">
+                        <span class="block truncate text-sm sm:text-base font-bold text-pastel-text">${escapeHtml(acc.name)}</span>
+                        <span class="block truncate text-xs text-pastel-subtext">${groups.length ? groups.map(g => g.cat.name).join(' · ') : '연결된 항목 없음'}</span>
+                    </span>
+                    <span class="flex items-center gap-1.5 shrink-0 text-[13px] sm:text-sm font-bold tabular-nums">${flowAmounts(accountFlow(groups))}${ic('chevron-right','text-pastel-subtext/70')}</span>`;
                 container.appendChild(card);
             });
             if (!$('account-detail-modal').classList.contains('hidden')) renderAccountDetail();   // 열려 있으면 바뀐 데이터로 갱신
@@ -910,16 +926,17 @@
                 const items = mData[cat.id] || [];
                 const catSum = sumItems(items);
                 const card = document.createElement('article');
-                card.className = `${cat.bgClass} rounded-3xl p-4 sm:p-5 border-2 ${cat.borderClass} shadow-card flex flex-col justify-between transition-all`;
+                card.className = 'card-plain flex flex-col';
+                const totalColor = (cat.badgeClass.split(' ').find(c => c.startsWith('text-')) || 'text-pastel-text');
                 card.innerHTML = `
                     <div>
-                        <div class="flex flex-wrap items-center justify-between gap-2 mb-3 pb-2.5 border-b border-black/5">
-                            <div class="flex items-center gap-2 shrink-0">
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <div class="flex items-center gap-2 min-w-0">
                                 <span class="w-9 h-9 rounded-full ${cat.iconClass} flex items-center justify-center text-xl shrink-0">${ic(cat.icon)}</span>
                                 <h2 class="font-cute text-lg sm:text-xl text-pastel-text whitespace-nowrap">${cat.name}</h2>
+                                <span class="cat-total truncate ${totalColor}">${formatCurrency(catSum)}</span>
                             </div>
-                            <div class="flex items-center gap-1.5 shrink-0 ml-auto">
-                                <span class="text-[13px] sm:text-sm font-bold px-2.5 py-1 rounded-full tabular-nums ${cat.badgeClass}">${formatCurrency(catSum)}</span>
+                            <div class="flex items-center shrink-0">
                                 <button type="button" onclick="openAddModal('${cat.id}')"
                                     class="inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-[13px] font-bold ${cat.btnClass} shadow-sm transition-bounce whitespace-nowrap">
                                     ${ic('plus')} 추가
@@ -928,7 +945,7 @@
                         </div>
                         <ul class="space-y-2 min-h-[48px]">
                             ${items.length === 0
-                                ? `<li class="text-[13px] text-pastel-subtext text-center py-3 bg-white/50 rounded-2xl border border-dashed border-gray-300/70">아직 등록된 내역이 없어요</li>`
+                                ? `<li class="text-[13px] text-pastel-subtext text-center py-3 rounded-2xl bg-pastel-bg">아직 등록된 내역이 없어요</li>`
                                 : items.map(item => {
                                     const zero = !Number(item.amount);
                                     const accName = accountName(item.accountId);
@@ -936,7 +953,7 @@
                                     <li role="button" tabindex="0" aria-label="${escapeHtml(item.name)} 수정"
                                         onclick="openEditModal('${cat.id}', '${item.id}')"
                                         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openEditModal('${cat.id}', '${item.id}')}"
-                                        class="flex items-center justify-between gap-2 bg-white/85 hover:bg-white px-3.5 py-3 rounded-2xl shadow-sm cursor-pointer transition-colors ${zero ? 'opacity-70' : ''}">
+                                        class="item-row${zero ? ' is-zero' : ''}">
                                         <div class="min-w-0 flex-1">
                                             <div class="flex flex-wrap items-center gap-x-2 gap-y-1 min-w-0">
                                                 <span class="min-w-0 max-w-full truncate text-sm sm:text-base font-medium text-pastel-text">${escapeHtml(item.name)}</span>
@@ -945,7 +962,7 @@
                                             ${item.split && item.details.length ? `<span class="block mt-0.5 text-xs text-pastel-subtext truncate">${escapeHtml(item.details[0].name)}${item.details.length > 1 ? ` 외 ${item.details.length - 1}건` : ''}</span>` : ''}
                                         </div>
                                         <div class="flex items-center gap-1 shrink-0">
-                                            <span class="text-sm sm:text-base tabular-nums ${zero ? 'font-medium text-pastel-subtext' : 'font-bold text-pastel-text'}">${formatCurrency(item.amount)}</span>
+                                            <span class="item-amt">${zero ? '–' : formatCurrency(item.amount)}</span>
                                             ${ic('chevron-right','text-pastel-subtext/70')}
                                         </div>
                                     </li>`;
